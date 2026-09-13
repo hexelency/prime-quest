@@ -25,9 +25,16 @@ export default function PrimeQuestHeader({ whatsappHref }: PrimeQuestHeaderProps
           <span><strong>PRIMEQUEST</strong><small>OIL · VESSELS · PROPERTIES</small></span>
         </a>
         <div className="nav-links">
-          <a href="/#portfolio">Portfolio</a>
-          <a href="/mandate">List with us</a>
-          <a href="/#process">How it works</a>
+          <details className="nav-dropdown">
+            <summary>Services <span>⌄</span></summary>
+            <div className="nav-dropdown-menu"><a href="/#portfolio">Services overview <span>↗</span></a><a href="/#available-listings">Available now <span>↗</span></a><a href="/offerings/vessels#available">Vessels <span>↗</span></a><a href="/offerings/property#available">Properties <span>↗</span></a><a href="/offerings/energy#available">Oil & gas <span>↗</span></a><a href="/offerings/agriculture#available">Land & agriculture <span>↗</span></a></div>
+          </details>
+          <a href="/#available-listings">Available</a>
+          <details className="nav-dropdown">
+            <summary>How it works <span>⌄</span></summary>
+            <div className="nav-dropdown-menu"><a href="/#inquiry">For buyers <span>↗</span></a><a href="/mandate">For sellers <span>↗</span></a></div>
+          </details>
+          <a href="/about">About us</a>
           <a href="/#contact">Contact</a>
         </div>
         <a className="button button-small button-outline desktop-whatsapp" href={whatsappHref} target="_blank" rel="noreferrer">WhatsApp us <span>↗</span></a>
@@ -40,9 +47,10 @@ export default function PrimeQuestHeader({ whatsappHref }: PrimeQuestHeaderProps
           <aside className={`mobile-drawer ${mobileNavOpen ? "open" : ""}`} aria-label="Mobile navigation">
             <div className="mobile-drawer-head"><span>Menu</span><button type="button" onClick={closeNavigation} aria-label="Close navigation">×</button></div>
             <div className="mobile-drawer-links">
-              <a href="/#portfolio" onClick={closeNavigation}>Portfolio <span>↗</span></a>
-              <a href="/mandate" onClick={closeNavigation}>List with us <span>↗</span></a>
-              <a href="/#process" onClick={closeNavigation}>How it works <span>↗</span></a>
+              <details className="mobile-nav-dropdown"><summary>Services <span>⌄</span></summary><div><a href="/#portfolio" onClick={closeNavigation}>Services overview <span>↗</span></a><a href="/#available-listings" onClick={closeNavigation}>Available now <span>↗</span></a><a href="/offerings/vessels#available" onClick={closeNavigation}>Vessels <span>↗</span></a><a href="/offerings/property#available" onClick={closeNavigation}>Properties <span>↗</span></a><a href="/offerings/energy#available" onClick={closeNavigation}>Oil & gas <span>↗</span></a><a href="/offerings/agriculture#available" onClick={closeNavigation}>Land & agriculture <span>↗</span></a></div></details>
+              <a href="/#available-listings" onClick={closeNavigation}>Available <span>↗</span></a>
+              <details className="mobile-nav-dropdown"><summary>How it works <span>⌄</span></summary><div><a href="/#inquiry" onClick={closeNavigation}>For buyers <span>↗</span></a><a href="/mandate" onClick={closeNavigation}>For sellers <span>↗</span></a></div></details>
+              <a href="/about" onClick={closeNavigation}>About us <span>↗</span></a>
               <a href="/#contact" onClick={closeNavigation}>Contact <span>↗</span></a>
               <a className="mobile-whatsapp" href={whatsappHref} target="_blank" rel="noreferrer" onClick={closeNavigation}>WhatsApp us <span>↗</span></a>
             </div>
