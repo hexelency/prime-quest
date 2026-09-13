@@ -16,6 +16,24 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "PrimeQuest | Oil, Vessels & Properties",
   description: "PrimeQuest connects genuine sellers, buyers and investors across vessels, oil and gas, and property.",
+  icons: {
+    icon: "/primequest-mark.svg",
+    shortcut: "/primequest-mark.svg",
+    apple: "/primequest-mark.svg",
+  },
+  openGraph: {
+    title: "PrimeQuest | Oil, Vessels & Properties",
+    description: "PrimeQuest connects genuine sellers, buyers and investors across vessels, oil and gas, property and agriculture.",
+    type: "website",
+    siteName: "PrimeQuest Oil and Properties Consultants",
+    images: [{ url: "/primequest-share.svg", width: 1200, height: 630, alt: "PrimeQuest Oil, Vessels and Properties" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "PrimeQuest | Oil, Vessels & Properties",
+    description: "Genuine assets. Clear direction. PrimeQuest connects serious buyers and sellers.",
+    images: ["/primequest-share.svg"],
+  },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

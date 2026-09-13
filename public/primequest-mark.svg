@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title desc">
+  <title id="title">PrimeQuest mark</title>
+  <desc id="desc">PQ monogram in PrimeQuest green and orange</desc>
+  <rect width="64" height="64" fill="#17352f"/>
+  <rect x="7" y="7" width="50" height="50" fill="none" stroke="#d66d3f" stroke-width="2"/>
+  <text x="32" y="40" fill="#f8f4ec" font-family="Georgia, serif" font-size="23" font-weight="700" text-anchor="middle">PQ</text>
+</svg>
