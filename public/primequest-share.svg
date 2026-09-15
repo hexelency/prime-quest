@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" role="img" aria-labelledby="title desc">
+  <title id="title">PrimeQuest Oil, Vessels and Properties</title>
+  <desc id="desc">PrimeQuest connects genuine sellers, buyers and investors across vessels, oil and gas, property and agriculture.</desc>
+  <rect width="1200" height="630" fill="#17352f"/>
+  <path d="M760 0h440v630H760z" fill="#d66d3f" opacity=".92"/>
+  <path d="M760 0h440v630H760z" fill="#112b26" opacity=".48"/>
+  <rect x="84" y="92" width="66" height="66" fill="none" stroke="#d66d3f" stroke-width="3"/>
+  <text x="117" y="138" fill="#f8f4ec" font-family="Georgia, serif" font-size="25" font-weight="700" text-anchor="middle">PQ</text>
+  <text x="84" y="224" fill="#f8f4ec" font-family="Arial, sans-serif" font-size="18" letter-spacing="5">PRIMEQUEST</text>
+  <text x="84" y="322" fill="#f8f4ec" font-family="Georgia, serif" font-size="64">Serious assets.</text>
+  <text x="84" y="394" fill="#f3b08e" font-family="Georgia, serif" font-size="64" font-style="italic">Clear direction.</text>
+  <text x="84" y="474" fill="#dbe6df" font-family="Arial, sans-serif" font-size="20">OIL · VESSELS · PROPERTIES · CONSULTANCY</text>
+  <text x="810" y="320" fill="#f8f4ec" font-family="Georgia, serif" font-size="42">Genuine opportunity</text>
+  <text x="810" y="375" fill="#f8f4ec" font-family="Georgia, serif" font-size="42">needs context.</text>
+</svg>
