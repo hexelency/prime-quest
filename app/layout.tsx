@@ -1,9 +1,5 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-<<<<<<< HEAD
-=======
-import PrimeQuestHeader from "@/components/PrimeQuestHeader";
->>>>>>> cd33b34c3b9ef5a5a3f9d6156987cecbe712fa18
 import "./globals.css";
 
 const geistSans = Geist({
@@ -41,19 +37,8 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-<<<<<<< HEAD
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col">{children}</body>
-=======
-    <html
-      lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
-    >
-      <body className="min-h-full flex flex-col">
-        <PrimeQuestHeader whatsappHref="https://wa.me/2348038128933?text=Hello%20PrimeQuest%2C%20I%20would%20like%20to%20discuss%20an%20opportunity." />
-        {children}
-      </body>
->>>>>>> cd33b34c3b9ef5a5a3f9d6156987cecbe712fa18
     </html>
   );
 }
