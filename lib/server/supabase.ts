@@ -72,3 +72,20 @@ export async function updateSupabase(table: string, filter: string, row: Supabas
   if (!response.ok) throw new Error(`Supabase update failed for ${table}: ${response.status}`);
   return (await response.json()) as SupabaseRow[];
 }
+
+export async function deleteFromSupabase(table: string, filter: string) {
+  const config = getSupabaseConfig();
+  if (!config) throw new Error("Database is not configured.");
+
+  const response = await fetch(`${config.url}/rest/v1/${table}?${filter}`, {
+    method: "DELETE",
+    headers: {
+      apikey: config.serviceRoleKey,
+      Authorization: `Bearer ${config.serviceRoleKey}`,
+      Prefer: "return=representation",
+    },
+  });
+
+  if (!response.ok) throw new Error(`Supabase delete failed for ${table}: ${response.status}`);
+  return (await response.json()) as SupabaseRow[];
+}

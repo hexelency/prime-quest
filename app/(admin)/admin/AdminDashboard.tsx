@@ -2,6 +2,8 @@
 
 import { useMemo, useState } from "react";
 import { availableListings, type AvailableCategory } from "@/lib/available-listings";
+import { useEffect } from "react";
+import type { MarketAsset, MarketBuyer } from "@/lib/demo-market-intelligence";
 import styles from "./admin-dashboard.module.css";
 
 const categoryLabels: Record<AvailableCategory, string> = {
@@ -18,6 +20,21 @@ export default function AdminDashboard() {
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState<"all" | AvailableCategory>("all");
   const [activeView, setActiveView] = useState("Overview");
+  const [marketAssets, setMarketAssets] = useState<MarketAsset[]>([]);
+  const [marketBuyers, setMarketBuyers] = useState<MarketBuyer[]>([]);
+  const [marketDatabase, setMarketDatabase] = useState("preview");
+
+  useEffect(() => {
+    fetch("/api/admin/market-intelligence")
+      .then(async (response) => {
+        const result = await response.json() as { assets?: MarketAsset[]; buyers?: MarketBuyer[]; database?: string };
+        if (!response.ok) throw new Error("Could not load market intelligence.");
+        setMarketAssets(result.assets ?? []);
+        setMarketBuyers(result.buyers ?? []);
+        setMarketDatabase(result.database ?? "preview");
+      })
+      .catch(() => setMarketDatabase("unavailable"));
+  }, []);
 
   const filteredListings = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
@@ -52,10 +69,22 @@ export default function AdminDashboard() {
           </div>
 
           <section className={styles.statsGrid} aria-label="Workspace summary">
-            <article className={styles.statCard}><span>Total inventory</span><strong>{availableListings.length}</strong><small>Across 5 categories</small></article>
+            <article className={styles.statCard}><span>Assets for review</span><strong>{marketAssets.length}</strong><small>AI sale signals</small></article>
+            <article className={styles.statCard}><span>Buyer signals</span><strong>{marketBuyers.length}</strong><small>Companies and investors</small></article>
             <article className={styles.statCard}><span>Awaiting review</span><strong>08</strong><small className={styles.warningText}>Needs attention</small></article>
             <article className={styles.statCard}><span>Open inquiries</span><strong>12</strong><small>Since last Monday</small></article>
             <article className={styles.statCard}><span>Published this month</span><strong>06</strong><small className={styles.positiveText}>+18% from August</small></article>
+          </section>
+
+          <section className={styles.intelligenceGrid} aria-label="AI market intelligence">
+            <div className={styles.panel}>
+              <div className={styles.panelHeader}><div><p className={styles.overline}>AI discovery · {marketDatabase}</p><h2>Assets found for sale</h2></div><span className={styles.panelMeta}>{marketAssets.length} signals</span></div>
+              <div className={styles.intelligenceList}>{marketAssets.map((asset) => <article className={styles.intelligenceRow} key={asset.id}><span className={styles.ref}>{asset.reference}</span><div><strong>{asset.title}</strong><span>{asset.asset_type} · {asset.location}</span></div><span className={styles.signalBadge}>{asset.confidence_score}% match</span><a href={asset.source_url} target="_blank" rel="noreferrer" aria-label={`Open source for ${asset.title}`}>Source ↗</a></article>)}</div>
+            </div>
+            <div className={styles.panel}>
+              <div className={styles.panelHeader}><div><p className={styles.overline}>AI discovery · buyer demand</p><h2>Companies and investors</h2></div><span className={styles.panelMeta}>{marketBuyers.length} signals</span></div>
+              <div className={styles.intelligenceList}>{marketBuyers.map((buyer) => <article className={styles.intelligenceRow} key={buyer.id}><span className={styles.ref}>BUY</span><div><strong>{buyer.company_name}</strong><span>{buyer.country} · Potential {buyer.kind}</span></div><span className={styles.signalBadge}>{buyer.confidence_score}% match</span><a href={buyer.source_url} target="_blank" rel="noreferrer" aria-label={`Open source for ${buyer.company_name}`}>Source ↗</a></article>)}</div>
+            </div>
           </section>
 
           <section className={styles.gridPrimary}>
