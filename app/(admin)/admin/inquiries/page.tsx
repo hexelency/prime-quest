@@ -1,21 +1,15 @@
-import AdminRecordsPage from "@/app/(admin)/components/AdminRecordsPage";
 import { isPrismaConfigured, requirePrisma } from "@/lib/server/prisma";
+import InquiriesWorkspace, { type InquiryRecord } from "./InquiriesWorkspace";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminInquiriesPage() {
-  let liveRecords: Array<{ ref: string; title: string; detail: string; status: string; date: string }> = [];
+  let records: InquiryRecord[] = [];
   if (isPrismaConfigured()) {
     try {
       const requests = await requirePrisma().buyerRequest.findMany({ orderBy: { createdAt: "desc" }, take: 100 });
-      liveRecords = requests.map((request) => ({
-        ref: request.id.slice(0, 8).toUpperCase(),
-        title: request.requestText.slice(0, 100),
-        detail: `Buyer inquiry · ${request.assetType ?? "Requirement pending"} · ${request.location ?? "Location pending"} · ${request.contactName ?? "Contact pending"}`,
-        status: request.status,
-        date: request.createdAt.toISOString().slice(0, 10),
-      }));
-    } catch { liveRecords = []; }
+      records = requests.map((request) => ({ id: request.id, requestText: request.requestText, category: request.category ?? "", assetType: request.assetType ?? "", location: request.location ?? "", budget: request.budget ?? "", contactName: request.contactName ?? "", contactEmail: request.contactEmail ?? "", contactPhone: request.contactPhone ?? "", status: request.status, source: request.source, consentVersion: request.consentVersion, consentAcceptedAt: request.consentAcceptedAt.toISOString(), createdAt: request.createdAt.toISOString() }));
+    } catch { records = []; }
   }
-  return <AdminRecordsPage eyebrow="Relationship desk" title="Inquiries" description="Track buyer interest, seller questions and the next human action required for each conversation." records={liveRecords} />;
+  return <InquiriesWorkspace initialRecords={records} />;
 }

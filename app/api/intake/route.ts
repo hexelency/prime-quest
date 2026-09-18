@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import sharp from "sharp";
 import { NextResponse } from "next/server";
 import { isPrismaConfigured, requirePrisma } from "@/lib/server/prisma";
 
@@ -11,17 +12,20 @@ function text(value: unknown, max = 500) {
   return typeof value === "string" ? value.trim().slice(0, max) : "";
 }
 
-async function saveAttachment(prisma: ReturnType<typeof requirePrisma>, entityId: string, attachment: { fileName: string; storagePath: string; mimeType: string; fileSize: number; content: Buffer }) {
+async function saveAttachment(prisma: ReturnType<typeof requirePrisma>, entityId: string, attachment: { fileName: string; storagePath: string; mimeType: string; fileSize: number; content: Buffer; previewContent: Buffer | null; previewMimeType: string | null; previewFileSize: number | null }) {
   await prisma.$executeRawUnsafe(
-    "INSERT INTO intake_attachments (entity_type, entity_id, file_name, storage_path, mime_type, file_size, content) VALUES ($1, $2::uuid, $3, $4, $5, $6, $7)",
-    "mandate", entityId, attachment.fileName, attachment.storagePath, attachment.mimeType, attachment.fileSize, attachment.content,
+    "INSERT INTO intake_attachments (entity_type, entity_id, file_name, storage_path, mime_type, file_size, content, preview_content, preview_mime_type, preview_file_size) VALUES ($1, $2::uuid, $3, $4, $5, $6, $7, $8, $9, $10)",
+    "mandate", entityId, attachment.fileName, attachment.storagePath, attachment.mimeType, attachment.fileSize, attachment.content, attachment.previewContent, attachment.previewMimeType, attachment.previewFileSize,
   );
 }
 
 async function uploadAttachment(file: File, entityId: string, entityType: string) {
   const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "-").slice(-120);
   const filename = `${randomUUID()}-${safeName}`;
-  return { fileName: file.name, storagePath: `database://intake-attachments/${entityType}/${entityId}/${filename}`, mimeType: file.type || "application/octet-stream", fileSize: file.size, content: Buffer.from(await file.arrayBuffer()) };
+  const content = Buffer.from(await file.arrayBuffer());
+  const isImage = file.type.startsWith("image/");
+  const previewContent = isImage ? await sharp(content).rotate().resize({ width: 640, height: 480, fit: "inside", withoutEnlargement: true }).webp({ quality: 72 }).toBuffer() : null;
+  return { fileName: file.name, storagePath: `database://intake-attachments/${entityType}/${entityId}/${filename}`, mimeType: file.type || "application/octet-stream", fileSize: file.size, content, previewContent, previewMimeType: previewContent ? "image/webp" : null, previewFileSize: previewContent?.length ?? null };
 }
 
 export async function POST(request: Request) {

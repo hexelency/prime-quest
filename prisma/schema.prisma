@@ -207,6 +207,9 @@ model IntakeAttachment {
   mimeType     String   @map("mime_type") @db.Text
   fileSize     Int      @map("file_size")
   content      Bytes   @db.ByteA
+  previewContent Bytes? @map("preview_content") @db.ByteA
+  previewMimeType String? @map("preview_mime_type") @db.Text
+  previewFileSize Int? @map("preview_file_size")
   createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
   @@index([entityType, entityId])
   @@map("intake_attachments")
