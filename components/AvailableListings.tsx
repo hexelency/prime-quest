@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { availableListings, type AvailableCategory } from "@/lib/available-listings";
+import type { AvailableCategory, AvailableListing } from "@/lib/available-listings";
 
 const categories: { value: "all" | AvailableCategory; label: string }[] = [
   { value: "all", label: "All services" },
@@ -18,22 +18,22 @@ function whatsappLink(ref: string) {
   return `https://wa.me/2348038128933?text=${encodeURIComponent(`Hello PrimeQuest, I would like more information about available listing ${ref}.`)}`;
 }
 
-export default function AvailableListings() {
+export default function AvailableListings({ listings }: { listings: readonly AvailableListing[] }) {
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState<"all" | AvailableCategory>("all");
   const [tag, setTag] = useState("all");
   const [sort, setSort] = useState<"newest" | "oldest" | "title">("newest");
 
-  const tags = useMemo(() => ["all", ...Array.from(new Set(availableListings.flatMap((listing) => listing.tags)))], []);
+  const tags = useMemo(() => ["all", ...Array.from(new Set(listings.flatMap((listing) => listing.tags)))], [listings]);
   const visibleListings = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
-    return availableListings.filter((listing) => {
+    return listings.filter((listing) => {
       const matchesQuery = !normalizedQuery || [listing.ref, listing.title, listing.type, listing.location, listing.summary].some((value) => value.toLowerCase().includes(normalizedQuery));
       const matchesCategory = category === "all" || listing.category === category;
       const matchesTag = tag === "all" || listing.tags.includes(tag);
       return matchesQuery && matchesCategory && matchesTag;
     }).sort((first, second) => sort === "title" ? first.title.localeCompare(second.title) : sort === "newest" ? second.publishedAt.localeCompare(first.publishedAt) : first.publishedAt.localeCompare(second.publishedAt));
-  }, [category, query, sort, tag]);
+  }, [category, listings, query, sort, tag]);
 
   return (
     <div className="available-listings" id="available-listings">

@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
 import { availableListings } from "@/lib/available-listings";
 import { demoMarketAssets } from "@/lib/demo-market-intelligence";
-import { isDatabaseConfigured, insertIntoSupabase, selectFromSupabase } from "@/lib/server/supabase";
+import { isPrismaConfigured, requirePrisma } from "@/lib/server/prisma";
 
 type MatchRequest = { request?: unknown; category?: unknown; asset_type?: unknown; location?: unknown; budget?: unknown; contact_name?: unknown; contact_email?: unknown };
+const categories = ["vessel", "property", "land", "track_farm", "energy"] as const;
 
 function clean(value: unknown) { return typeof value === "string" ? value.trim().slice(0, 500) : ""; }
 function tokenize(value: string) { return value.toLowerCase().split(/[^a-z0-9]+/).filter((part) => part.length > 2); }
@@ -29,8 +30,9 @@ export async function POST(request: Request) {
     if (!requestText && !category && !assetType && !location) return NextResponse.json({ error: "Describe what you are looking for." }, { status: 400 });
 
     let listings: Record<string, unknown>[];
-    if (isDatabaseConfigured()) {
-      listings = await selectFromSupabase("asset_listings", { status: "eq.published", verification_status: "in.(confirmed,verified)", order: "created_at.desc", limit: "50" });
+    if (isPrismaConfigured()) {
+      const records = await requirePrisma().assetListing.findMany({ where: { status: "published", verificationStatus: { in: ["confirmed", "verified"] } }, orderBy: { createdAt: "desc" }, take: 50 });
+      listings = records as unknown as Record<string, unknown>[];
     } else {
       listings = [...demoMarketAssets, ...availableListings].filter((listing) => "category" in listing ? true : false) as unknown as Record<string, unknown>[];
     }
@@ -42,9 +44,9 @@ export async function POST(request: Request) {
     }).filter(({ score }) => score >= (terms.length ? 20 : 0)).sort((left, right) => right.score - left.score).slice(0, 6);
 
     let requestId: string | undefined;
-    if (isDatabaseConfigured()) {
-      const saved = await insertIntoSupabase("buyer_requests", { request_text: requestText || `${category} ${assetType} ${location}`.trim(), category: category || null, asset_type: assetType || null, location: location || null, budget: clean(body.budget) || null, contact_name: clean(body.contact_name) || null, contact_email: clean(body.contact_email) || null });
-      requestId = String(saved[0]?.id ?? "");
+    if (isPrismaConfigured()) {
+      const saved = await requirePrisma().buyerRequest.create({ data: { requestText: requestText || `${category} ${assetType} ${location}`.trim(), category: categories.includes(category as typeof categories[number]) ? category as typeof categories[number] : undefined, assetType: assetType || undefined, location: location || undefined, budget: clean(body.budget) || undefined, contactName: clean(body.contact_name) || undefined, contactEmail: clean(body.contact_email) || undefined } });
+      requestId = saved.id;
     }
     return NextResponse.json({ request_id: requestId, matches: matches.map(({ listing, score }) => ({ ...publicCard(listing), match_score: score })), message: matches.length ? "We found opportunities that may fit. A PrimeQuest representative will share qualified details." : "We will review the request and contact you when a suitable opportunity is available." });
   } catch (error) {

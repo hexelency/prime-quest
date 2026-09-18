@@ -1,0 +1,212 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum CounterpartyKind {
+  buyer
+  seller
+  trader
+  broker
+  mandate
+  @@map("counterparty_kind")
+}
+
+enum VerificationStatus {
+  potential
+  confirmed
+  under_review
+  verified
+  rejected
+  @@map("verification_status")
+}
+
+enum MandateDirection {
+  buy
+  sell
+  @@map("mandate_direction")
+}
+
+enum MandateStatus {
+  new
+  under_review
+  active
+  matched
+  closed
+  expired
+  @@map("mandate_status")
+}
+
+enum LeadStatus {
+  discovered
+  researched
+  contacted
+  interested
+  registered
+  rejected
+  @@map("lead_status")
+}
+
+enum AssetCategory {
+  vessel
+  property
+  land
+  track_farm
+  energy
+  @@map("asset_category")
+}
+
+enum AssetListingStatus {
+  discovered
+  under_review
+  approved
+  published
+  withdrawn
+  @@map("asset_listing_status")
+}
+
+model Organization {
+  id             String         @id @default(uuid()) @db.Uuid
+  name           String         @db.Text
+  country        String?        @db.Text
+  website        String?        @db.Text
+  createdAt      DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+  counterparties Counterparty[]
+  @@map("organizations")
+}
+
+model Counterparty {
+  id                 String             @id @default(uuid()) @db.Uuid
+  organizationId     String?            @map("organization_id") @db.Uuid
+  name               String             @db.Text
+  kind               CounterpartyKind
+  country            String?            @db.Text
+  verificationStatus VerificationStatus @default(potential) @map("verification_status")
+  notes              String?            @db.Text
+  createdAt          DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
+  organization       Organization?      @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  mandates           Mandate[]
+  @@map("counterparties")
+}
+
+model Mandate {
+  id                 String             @id @default(uuid()) @db.Uuid
+  counterpartyId     String?            @map("counterparty_id") @db.Uuid
+  direction          MandateDirection
+  assetType          String             @map("asset_type") @db.Text
+  product            String             @db.Text
+  quantity           Decimal?
+  quantityUnit       String?            @map("quantity_unit") @db.Text
+  deliveryLocation   String?            @map("delivery_location") @db.Text
+  terms              String?            @db.Text
+  budget             String?            @db.Text
+  status             MandateStatus      @default(new)
+  verificationStatus VerificationStatus @default(under_review) @map("verification_status")
+  requirements       Json               @default("{}")
+  createdAt          DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt          DateTime           @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  counterparty       Counterparty?      @relation(fields: [counterpartyId], references: [id], onDelete: SetNull)
+  buyerMatches       Match[]            @relation("buyerMandate")
+  sellerMatches      Match[]            @relation("sellerMandate")
+  @@index([status, verificationStatus])
+  @@map("mandates")
+}
+
+model Lead {
+  id                 String             @id @default(uuid()) @db.Uuid
+  companyName        String             @map("company_name") @db.Text
+  kind               CounterpartyKind
+  country            String?            @db.Text
+  website            String?            @db.Text
+  sourceUrl          String?            @map("source_url") @db.Text
+  sourceSummary      String?            @map("source_summary") @db.Text
+  confidenceScore    Decimal?           @map("confidence_score")
+  status             LeadStatus         @default(discovered)
+  verificationStatus VerificationStatus @default(potential) @map("verification_status")
+  riskFlags          Json               @default("[]") @map("risk_flags")
+  lastResearchedAt   DateTime?          @map("last_researched_at") @db.Timestamptz(6)
+  createdAt          DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
+  @@index([status, verificationStatus])
+  @@map("leads")
+}
+
+model AssetListing {
+  id                 String             @id @default(uuid()) @db.Uuid
+  reference          String             @unique @db.Text
+  title              String             @db.Text
+  category           AssetCategory
+  assetType          String             @map("asset_type") @db.Text
+  location           String?            @db.Text
+  summary            String?            @db.Text
+  sourceUrl          String?            @map("source_url") @db.Text
+  sourcePlatform     String?            @map("source_platform") @db.Text
+  sourceSummary      String?            @map("source_summary") @db.Text
+  imageUrl           String?            @map("image_url") @db.Text
+  tags               Json               @default("[]")
+  discoveredBy       String             @default("ai_agent") @map("discovered_by") @db.Text
+  confidenceScore    Decimal?           @map("confidence_score")
+  status             AssetListingStatus @default(discovered)
+  verificationStatus VerificationStatus @default(potential) @map("verification_status")
+  publishedAt        DateTime?          @map("published_at") @db.Timestamptz(6)
+  riskFlags          Json               @default("[]") @map("risk_flags")
+  lastResearchedAt   DateTime?          @map("last_researched_at") @db.Timestamptz(6)
+  createdAt          DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt          DateTime           @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  @@index([status, verificationStatus])
+  @@index([category])
+  @@map("asset_listings")
+}
+
+model BuyerRequest {
+  id           String        @id @default(uuid()) @db.Uuid
+  requestText  String        @map("request_text") @db.Text
+  category     AssetCategory?
+  assetType    String?       @map("asset_type") @db.Text
+  location     String?       @db.Text
+  budget       String?       @db.Text
+  contactName  String?       @map("contact_name") @db.Text
+  contactEmail String?       @map("contact_email") @db.Text
+  status       String        @default("new") @db.Text
+  createdAt    DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  @@index([status, createdAt])
+  @@map("buyer_requests")
+}
+
+model Match {
+  id             String   @id @default(uuid()) @db.Uuid
+  buyerMandateId String   @map("buyer_mandate_id") @db.Uuid
+  sellerMandateId String  @map("seller_mandate_id") @db.Uuid
+  score          Decimal?
+  reasons        Json     @default("[]")
+  status         String   @default("potential") @db.Text
+  reviewedAt     DateTime? @map("reviewed_at") @db.Timestamptz(6)
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  buyerMandate   Mandate  @relation("buyerMandate", fields: [buyerMandateId], references: [id], onDelete: Cascade)
+  sellerMandate  Mandate  @relation("sellerMandate", fields: [sellerMandateId], references: [id], onDelete: Cascade)
+  @@unique([buyerMandateId, sellerMandateId])
+  @@index([score])
+  @@map("matches")
+}
+
+model AiThread {
+  id        String       @id @default(uuid()) @db.Uuid
+  title     String       @default("Trade intelligence session") @db.Text
+  createdAt DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime     @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  messages  AiMessage[]
+  @@map("ai_threads")
+}
+
+model AiMessage {
+  id        String    @id @default(uuid()) @db.Uuid
+  threadId  String    @map("thread_id") @db.Uuid
+  role      String    @db.Text
+  content   String    @db.Text
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  thread    AiThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  @@index([threadId, createdAt])
+  @@map("ai_messages")
+}

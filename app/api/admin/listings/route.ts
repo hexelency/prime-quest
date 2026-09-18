@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { insertIntoSupabase, isDatabaseConfigured, selectFromSupabase } from "@/lib/server/supabase";
+import { isPrismaConfigured, requirePrisma } from "@/lib/server/prisma";
+import type { Prisma } from "@prisma/client";
 
 const categories = ["vessel", "property", "land", "track_farm", "energy"] as const;
 const statuses = ["discovered", "under_review", "approved", "published", "withdrawn"] as const;
@@ -15,10 +16,13 @@ type ListingInput = {
   source_url?: unknown;
   source_platform?: unknown;
   source_summary?: unknown;
+  image_url?: unknown;
+  tags?: unknown;
   discovered_by?: unknown;
   confidence_score?: unknown;
   status?: unknown;
   verification_status?: unknown;
+  published_at?: unknown;
   risk_flags?: unknown;
 };
 
@@ -37,10 +41,13 @@ function validateListing(input: ListingInput, partial = false) {
     ...(text(input.source_url) ? { source_url: text(input.source_url) } : {}),
     ...(text(input.source_platform) ? { source_platform: text(input.source_platform) } : {}),
     ...(text(input.source_summary) ? { source_summary: text(input.source_summary) } : {}),
+    ...(text(input.image_url) ? { image_url: text(input.image_url) } : {}),
+    ...(Array.isArray(input.tags) ? { tags: input.tags.filter((tag): tag is string => typeof tag === "string") } : {}),
     ...(text(input.discovered_by) ? { discovered_by: text(input.discovered_by) } : {}),
     ...(typeof input.confidence_score === "number" ? { confidence_score: input.confidence_score } : {}),
     ...(statuses.includes(input.status as typeof statuses[number]) ? { status: input.status } : {}),
     ...(verificationStatuses.includes(input.verification_status as typeof verificationStatuses[number]) ? { verification_status: input.verification_status } : {}),
+    ...(typeof input.published_at === "string" && !Number.isNaN(Date.parse(input.published_at)) ? { published_at: input.published_at } : {}),
     ...(Array.isArray(input.risk_flags) ? { risk_flags: input.risk_flags } : {}),
   };
   const required = ["reference", "title", "category", "asset_type"] as const;
@@ -53,26 +60,80 @@ function validateListing(input: ListingInput, partial = false) {
   return { listing };
 }
 
+export function serializeListing(listing: Record<string, unknown>) {
+  return {
+    id: listing.id,
+    reference: listing.reference,
+    title: listing.title,
+    category: listing.category,
+    asset_type: listing.assetType,
+    location: listing.location,
+    summary: listing.summary,
+    source_url: listing.sourceUrl,
+    source_platform: listing.sourcePlatform,
+    source_summary: listing.sourceSummary,
+    image_url: listing.imageUrl,
+    tags: listing.tags,
+    discovered_by: listing.discoveredBy,
+    confidence_score: listing.confidenceScore,
+    status: listing.status,
+    verification_status: listing.verificationStatus,
+    risk_flags: listing.riskFlags,
+    published_at: listing.publishedAt,
+    last_researched_at: listing.lastResearchedAt,
+    created_at: listing.createdAt,
+    updated_at: listing.updatedAt,
+  };
+}
+
+export function prismaListingData(listing: Record<string, unknown>) {
+  return {
+    ...(listing.reference ? { reference: listing.reference as string } : {}),
+    ...(listing.title ? { title: listing.title as string } : {}),
+    ...(listing.category ? { category: listing.category as typeof categories[number] } : {}),
+    ...(listing.asset_type ? { assetType: listing.asset_type as string } : {}),
+    ...(listing.location ? { location: listing.location as string } : {}),
+    ...(listing.summary ? { summary: listing.summary as string } : {}),
+    ...(listing.source_url ? { sourceUrl: listing.source_url as string } : {}),
+    ...(listing.source_platform ? { sourcePlatform: listing.source_platform as string } : {}),
+    ...(listing.source_summary ? { sourceSummary: listing.source_summary as string } : {}),
+    ...(listing.image_url ? { imageUrl: listing.image_url as string } : {}),
+    ...(Array.isArray(listing.tags) ? { tags: listing.tags } : {}),
+    ...(listing.discovered_by ? { discoveredBy: listing.discovered_by as string } : {}),
+    ...(typeof listing.confidence_score === "number" ? { confidenceScore: listing.confidence_score } : {}),
+    ...(listing.status ? { status: listing.status as typeof statuses[number] } : {}),
+    ...(listing.verification_status ? { verificationStatus: listing.verification_status as typeof verificationStatuses[number] } : {}),
+    ...(Array.isArray(listing.risk_flags) ? { riskFlags: listing.risk_flags } : {}),
+    ...(listing.published_at ? { publishedAt: new Date(listing.published_at as string) } : {}),
+  };
+}
+
 export async function GET(request: Request) {
-  if (!isDatabaseConfigured()) return NextResponse.json({ listings: [], database: "preview" });
+  if (!isPrismaConfigured()) return NextResponse.json({ listings: [], database: "preview" });
   const url = new URL(request.url);
-  const query: Record<string, string> = { order: "created_at.desc" };
-  if (url.searchParams.get("category")) query.category = `eq.${url.searchParams.get("category")}`;
-  if (url.searchParams.get("status")) query.status = `eq.${url.searchParams.get("status")}`;
   try {
-    return NextResponse.json({ listings: await selectFromSupabase("asset_listings", query), database: "connected" });
+    const category = url.searchParams.get("category");
+    const status = url.searchParams.get("status");
+    const listings = await requirePrisma().assetListing.findMany({
+      where: {
+        ...(categories.includes(category as typeof categories[number]) ? { category: category as typeof categories[number] } : {}),
+        ...(statuses.includes(status as typeof statuses[number]) ? { status: status as typeof statuses[number] } : {}),
+      },
+      orderBy: { createdAt: "desc" },
+    });
+    return NextResponse.json({ listings: listings.map((listing) => serializeListing(listing as unknown as Record<string, unknown>)), database: "connected" });
   } catch (error) {
     return NextResponse.json({ error: error instanceof Error ? error.message : "Could not load listings." }, { status: 500 });
   }
 }
 
 export async function POST(request: Request) {
-  if (!isDatabaseConfigured()) return NextResponse.json({ error: "Database is not configured." }, { status: 503 });
+  if (!isPrismaConfigured()) return NextResponse.json({ error: "Database is not configured." }, { status: 503 });
   try {
     const validation = validateListing(await request.json() as ListingInput);
     if (validation.error) return NextResponse.json({ error: validation.error }, { status: 400 });
-    const inserted = await insertIntoSupabase("asset_listings", validation.listing ?? {});
-    return NextResponse.json({ listing: inserted[0] }, { status: 201 });
+    const listing = await requirePrisma().assetListing.create({ data: prismaListingData(validation.listing ?? {}) as Prisma.AssetListingCreateInput });
+    return NextResponse.json({ listing: serializeListing(listing as unknown as Record<string, unknown>) }, { status: 201 });
   } catch (error) {
     return NextResponse.json({ error: error instanceof Error ? error.message : "Could not create listing." }, { status: 500 });
   }

@@ -5,6 +5,7 @@ import { availableListings, type AvailableCategory } from "@/lib/available-listi
 import { useEffect } from "react";
 import type { MarketAsset, MarketBuyer } from "@/lib/demo-market-intelligence";
 import styles from "./admin-dashboard.module.css";
+import ListingManager from "@/app/(admin)/components/ListingManager";
 
 const categoryLabels: Record<AvailableCategory, string> = {
   vessels: "Vessels",
@@ -114,15 +115,7 @@ export default function AdminDashboard() {
             </div>
           </section>
 
-          <section className={styles.panel}>
-            <div className={styles.panelHeader}><div><p className={styles.overline}>Admin-published inventory</p><h2>Listings</h2></div><button className={styles.primaryButton} type="button">+ Add listing</button></div>
-            <div className={styles.filters}>
-              <label>Search<input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search references or titles" /></label>
-              <label>Category<select value={category} onChange={(event) => setCategory(event.target.value as "all" | AvailableCategory)}><option value="all">All categories</option>{(Object.keys(categoryLabels) as AvailableCategory[]).map((item) => <option value={item} key={item}>{categoryLabels[item]}</option>)}</select></label>
-              <span className={styles.resultCount}>{filteredListings.length} records</span>
-            </div>
-            <div className={styles.tableWrap}><table className={styles.table}><thead><tr><th>Reference</th><th>Listing</th><th>Category</th><th>Location</th><th>Published</th><th>Status</th><th /></tr></thead><tbody>{filteredListings.slice(0, 8).map((listing) => <tr key={listing.ref}><td className={styles.ref}>{listing.ref}</td><td><strong>{listing.title}</strong><small>{listing.type}</small></td><td>{categoryLabels[listing.category]}</td><td>{listing.location}</td><td>{listing.publishedAt}</td><td><span className={styles.liveStatus}>Preview</span></td><td><button className={styles.moreButton} type="button" aria-label={`More actions for ${listing.ref}`}>•••</button></td></tr>)}</tbody></table></div>
-          </section>
+          <ListingManager compact />
         </div>
       </section>
     </main>
