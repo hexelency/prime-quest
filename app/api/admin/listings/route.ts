@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { isPrismaConfigured, requirePrisma } from "@/lib/server/prisma";
-import type { Prisma } from "@prisma/client";
+import type { Prisma } from "@prisma/client/index";
 
 const categories = ["vessel", "property", "land", "track_farm", "energy"] as const;
 const statuses = ["discovered", "under_review", "approved", "published", "withdrawn"] as const;
@@ -121,7 +121,7 @@ export async function GET(request: Request) {
       },
       orderBy: { createdAt: "desc" },
     });
-    return NextResponse.json({ listings: listings.map((listing) => serializeListing(listing as unknown as Record<string, unknown>)), database: "connected" });
+    return NextResponse.json({ listings: listings.map((listing: Record<string, unknown>) => serializeListing(listing)), database: "connected" });
   } catch (error) {
     return NextResponse.json({ error: error instanceof Error ? error.message : "Could not load listings." }, { status: 500 });
   }

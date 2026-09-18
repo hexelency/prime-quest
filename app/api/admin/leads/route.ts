@@ -24,7 +24,7 @@ export async function GET() {
   if (!isPrismaConfigured()) return NextResponse.json({ leads: demoMarketBuyers, database: "preview" });
   try {
     const leads = await requirePrisma().lead.findMany({ orderBy: { createdAt: "desc" } });
-    return NextResponse.json({ leads: leads.map((lead) => serializeLead(lead as unknown as Record<string, unknown>)), database: "connected" });
+    return NextResponse.json({ leads: leads.map((lead: Record<string, unknown>) => serializeLead(lead)), database: "connected" });
   } catch (error) {
     return NextResponse.json({ error: error instanceof Error ? error.message : "Could not load leads." }, { status: 500 });
   }

@@ -14,7 +14,7 @@ export async function GET() {
       requirePrisma().assetListing.findMany({ orderBy: { createdAt: "desc" } }),
       requirePrisma().lead.findMany({ where: { kind: "buyer" }, orderBy: { createdAt: "desc" } }),
     ]);
-    return NextResponse.json({ assets: assets.map((asset) => serializeListing(asset as unknown as Record<string, unknown>)), buyers: buyers.map((buyer) => serializeLead(buyer as unknown as Record<string, unknown>)), database: "connected" });
+    return NextResponse.json({ assets: assets.map((asset: Record<string, unknown>) => serializeListing(asset)), buyers: buyers.map((buyer: Record<string, unknown>) => serializeLead(buyer)), database: "connected" });
   } catch (error) {
     return NextResponse.json({ error: error instanceof Error ? error.message : "Could not load market intelligence." }, { status: 500 });
   }

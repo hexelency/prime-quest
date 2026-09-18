@@ -15,14 +15,27 @@ export async function getPublishedAvailableListings(): Promise<AvailableListing[
     orderBy: { publishedAt: "desc" },
   });
 
-  return listings.map((listing) => ({
+  type PublishedListing = {
+    reference: string;
+    title: string;
+    category: string;
+    assetType: string;
+    location: string | null;
+    summary: string | null;
+    imageUrl: string | null;
+    tags: unknown;
+    publishedAt: Date | null;
+    createdAt: Date;
+  };
+
+  return (listings as PublishedListing[]).map((listing) => ({
     ref: listing.reference,
     title: listing.title,
     category: categoryMap[listing.category] ?? "energy",
     type: listing.assetType,
     location: listing.location ?? "Information not provided",
     summary: listing.summary ?? "Details supplied after qualification.",
-    tags: Array.isArray(listing.tags) ? listing.tags.filter((tag): tag is string => typeof tag === "string") : [],
+    tags: Array.isArray(listing.tags) ? listing.tags.filter((tag: unknown): tag is string => typeof tag === "string") : [],
     publishedAt: listing.publishedAt?.toISOString() ?? listing.createdAt.toISOString(),
     image: listing.imageUrl ?? "/listing-placeholder.svg",
   }));
