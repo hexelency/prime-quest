@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { isPrismaConfigured, requirePrisma } from "@/lib/server/prisma";
-import type { Prisma } from "@prisma/client/index";
+import type { Prisma } from "@/generated/prisma";
 
 const categories = ["vessel", "property", "land", "track_farm", "energy"] as const;
 const statuses = ["discovered", "under_review", "approved", "published", "withdrawn"] as const;

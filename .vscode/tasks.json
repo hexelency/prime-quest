@@ -26,6 +26,43 @@
 			"problemMatcher": [
 				"$tsc"
 			]
+		},
+		{
+			"label": "Generate Prisma client",
+			"type": "shell",
+			"command": "npx.cmd",
+			"args": [
+				"prisma",
+				"generate"
+			],
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Production build validation",
+			"type": "shell",
+			"command": "npm.cmd",
+			"args": [
+				"run",
+				"build"
+			],
+			"isBackground": false,
+			"problemMatcher": [
+				"$tsc"
+			]
+		},
+		{
+			"label": "Final production build",
+			"type": "shell",
+			"command": "npm.cmd",
+			"args": [
+				"run",
+				"build"
+			],
+			"isBackground": false,
+			"problemMatcher": [
+				"$tsc"
+			]
 		}
 	]
 }

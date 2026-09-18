@@ -1,6 +1,6 @@
 import "dotenv/config";
 import { PrismaPg } from "@prisma/adapter-pg";
-import { PrismaClient } from "@prisma/client/index";
+import { PrismaClient } from "../generated/prisma";
 import { availableListings } from "../lib/available-listings";
 
 const connectionString = process.env.DIRECT_URL ?? process.env.DATABASE_URL;

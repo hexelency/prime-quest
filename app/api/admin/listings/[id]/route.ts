@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { isPrismaConfigured, requirePrisma } from "@/lib/server/prisma";
-import type { Prisma } from "@prisma/client/index";
+import type { Prisma } from "@/generated/prisma";
 import { prismaListingData, serializeListing, validateListing } from "../route";
 
 type RouteContext = { params: Promise<{ id: string }> };
