@@ -1,11 +1,39 @@
-import AdminRecordsPage from "@/app/(admin)/components/AdminRecordsPage";
+import { isPrismaConfigured, requirePrisma } from "@/lib/server/prisma";
+import MandatesWorkspace, { type MandateRecord } from "./MandatesWorkspace";
 
-const records = [
-  { ref: "M-024", title: "EN590 supply requirement", detail: "Buyer mandate · Tema, Ghana · 50,000 MT/month", status: "under review", date: "2026-09-14" },
-  { ref: "M-023", title: "Offshore vessel placement", detail: "Seller mandate · West Africa · Authorized representative pending", status: "verification", date: "2026-09-12" },
-  { ref: "M-022", title: "Commercial warehouse search", detail: "Buyer mandate · Lagos · Lease or purchase", status: "active", date: "2026-09-10" },
-];
+export const dynamic = "force-dynamic";
 
-export default function AdminMandatesPage() {
-  return <AdminRecordsPage eyebrow="Private intake" title="Seller mandates" description="Keep seller submissions, buyer requirements and verification work in one controlled review queue." records={records} />;
+type AttachmentRow = { id: string; entityId: string; fileName: string; storagePath: string; mimeType: string; fileSize: number };
+
+export default async function AdminMandatesPage() {
+  let records: MandateRecord[] = [];
+  if (isPrismaConfigured()) {
+    try {
+      const prisma = requirePrisma();
+      const [mandates, attachments] = await Promise.all([
+        prisma.mandate.findMany({ where: { direction: "sell" }, orderBy: { createdAt: "desc" }, take: 100 }),
+        prisma.$queryRawUnsafe<AttachmentRow[]>("SELECT id, entity_id AS \"entityId\", file_name AS \"fileName\", storage_path AS \"storagePath\", mime_type AS \"mimeType\", file_size AS \"fileSize\" FROM intake_attachments WHERE entity_type = 'mandate'"),
+      ]);
+      records = mandates.map((mandate) => ({
+        id: mandate.id,
+        product: mandate.product,
+        assetType: mandate.assetType,
+        location: mandate.deliveryLocation ?? "",
+        terms: mandate.terms ?? "",
+        contactName: mandate.contactName ?? "",
+        contactEmail: mandate.contactEmail ?? "",
+        contactPhone: mandate.contactPhone ?? "",
+        status: mandate.status,
+        verificationStatus: mandate.verificationStatus,
+        source: mandate.source,
+        consentVersion: mandate.consentVersion,
+        consentAcceptedAt: mandate.consentAcceptedAt.toISOString(),
+        createdAt: mandate.createdAt.toISOString(),
+        attachments: attachments.filter((file) => file.entityId === mandate.id).map(({ entityId: _entityId, ...file }) => file),
+      }));
+    } catch {
+      records = [];
+    }
+  }
+  return <MandatesWorkspace initialRecords={records} />;
 }

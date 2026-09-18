@@ -104,6 +104,12 @@ model Mandate {
   deliveryLocation   String?            @map("delivery_location") @db.Text
   terms              String?            @db.Text
   budget             String?            @db.Text
+  contactName        String?            @map("contact_name") @db.Text
+  contactEmail       String?            @map("contact_email") @db.Text
+  contactPhone       String?            @map("contact_phone") @db.Text
+  source             String             @default("public_form") @db.Text
+  consentVersion     String             @map("consent_version") @db.Text
+  consentAcceptedAt  DateTime           @map("consent_accepted_at") @db.Timestamptz(6)
   status             MandateStatus      @default(new)
   verificationStatus VerificationStatus @default(under_review) @map("verification_status")
   requirements       Json               @default("{}")
@@ -170,10 +176,40 @@ model BuyerRequest {
   budget       String?       @db.Text
   contactName  String?       @map("contact_name") @db.Text
   contactEmail String?       @map("contact_email") @db.Text
+  contactPhone String?       @map("contact_phone") @db.Text
+  source       String        @default("public_form") @db.Text
+  consentVersion String      @map("consent_version") @db.Text
+  consentAcceptedAt DateTime @map("consent_accepted_at") @db.Timestamptz(6)
   status       String        @default("new") @db.Text
   createdAt    DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
   @@index([status, createdAt])
   @@map("buyer_requests")
+}
+
+model AdminNotification {
+  id          String   @id @default(uuid()) @db.Uuid
+  kind        String   @db.Text
+  subject     String   @db.Text
+  body        String   @db.Text
+  entityId    String?  @map("entity_id") @db.Uuid
+  readAt      DateTime? @map("read_at") @db.Timestamptz(6)
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  @@index([readAt, createdAt])
+  @@map("admin_notifications")
+}
+
+model IntakeAttachment {
+  id           String   @id @default(uuid()) @db.Uuid
+  entityType   String   @map("entity_type") @db.Text
+  entityId     String   @map("entity_id") @db.Uuid
+  fileName     String   @map("file_name") @db.Text
+  storagePath  String   @map("storage_path") @db.Text
+  mimeType     String   @map("mime_type") @db.Text
+  fileSize     Int      @map("file_size")
+  content      Bytes   @db.ByteA
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  @@index([entityType, entityId])
+  @@map("intake_attachments")
 }
 
 model Match {

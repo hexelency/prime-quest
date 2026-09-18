@@ -11,7 +11,7 @@ export function SellerGuideSection() {
 }
 
 export function BuyerSection({ offerings, buyerLink, buyerMessage }: ConversionSectionsProps) {
-  return <section className="contact section-space" id="inquiry"><div className="shell contact-grid"><div><p className="eyebrow accent">Prospective buyers</p><h2>Tell us what<br /><em>you are seeking.</em></h2><p className="contact-note">Use the category selector above or message PrimeQuest directly for a buyer brief tailored to vessels, energy, land or agriculture.</p></div><div className="buyer-actions">{offerings.map((item) => <a className="buyer-link" key={item.id} href={buyerLink(buyerMessage(item))} target="_blank" rel="noreferrer"><span>Looking for {item.shortTitle.toLowerCase()}</span><span>WhatsApp ↗</span></a>)}</div></div></section>;
+  return <section className="contact section-space" id="inquiry"><div className="shell contact-grid"><div><p className="eyebrow accent">Prospective buyers</p><h2>Tell us what<br /><em>you are seeking.</em></h2><p className="contact-note">Use the shared intake to submit a consented buyer brief, or message PrimeQuest directly for a quick conversation.</p><a className="button button-dark" href="/request">Open buyer or seller form <span>↗</span></a></div><div className="buyer-actions">{offerings.map((item) => <a className="buyer-link" key={item.id} href={buyerLink(buyerMessage(item))} target="_blank" rel="noreferrer"><span>Looking for {item.shortTitle.toLowerCase()}</span><span>WhatsApp ↗</span></a>)}</div></div></section>;
 }
 
 export function HomeFooter({ buyerLink }: { buyerLink: (message: string) => string }) {

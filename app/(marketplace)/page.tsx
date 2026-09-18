@@ -12,7 +12,7 @@ import ReferenceSection from "@/app/(marketplace)/components/home/ReferenceSecti
 import AvailableSection from "@/app/(marketplace)/components/home/AvailableSection";
 import PrimeQuestChat from "@/app/(marketplace)/components/PrimeQuestChat";
 
-const WHATSAPP_NUMBER = "2348038128933";
+const WHATSAPP_NUMBER = "2348108117215";
 
 function whatsappLink(message: string) {
     return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;

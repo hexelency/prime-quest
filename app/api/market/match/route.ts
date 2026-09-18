@@ -3,7 +3,7 @@ import { availableListings } from "@/lib/available-listings";
 import { demoMarketAssets } from "@/lib/demo-market-intelligence";
 import { isPrismaConfigured, requirePrisma } from "@/lib/server/prisma";
 
-type MatchRequest = { request?: unknown; category?: unknown; asset_type?: unknown; location?: unknown; budget?: unknown; contact_name?: unknown; contact_email?: unknown };
+type MatchRequest = { request?: unknown; category?: unknown; asset_type?: unknown; location?: unknown; budget?: unknown; contact_name?: unknown; contact_email?: unknown; contact_phone?: unknown; consent?: unknown };
 const categories = ["vessel", "property", "land", "track_farm", "energy"] as const;
 
 function clean(value: unknown) { return typeof value === "string" ? value.trim().slice(0, 500) : ""; }
@@ -28,6 +28,7 @@ export async function POST(request: Request) {
     const assetType = clean(body.asset_type).toLowerCase();
     const location = clean(body.location).toLowerCase();
     if (!requestText && !category && !assetType && !location) return NextResponse.json({ error: "Describe what you are looking for." }, { status: 400 });
+    if (body.consent !== true) return NextResponse.json({ error: "Please accept the PrimeQuest terms before submitting your request." }, { status: 400 });
 
     let listings: Record<string, unknown>[];
     if (isPrismaConfigured()) {
@@ -45,7 +46,8 @@ export async function POST(request: Request) {
 
     let requestId: string | undefined;
     if (isPrismaConfigured()) {
-      const saved = await requirePrisma().buyerRequest.create({ data: { requestText: requestText || `${category} ${assetType} ${location}`.trim(), category: categories.includes(category as typeof categories[number]) ? category as typeof categories[number] : undefined, assetType: assetType || undefined, location: location || undefined, budget: clean(body.budget) || undefined, contactName: clean(body.contact_name) || undefined, contactEmail: clean(body.contact_email) || undefined } });
+      const saved = await requirePrisma().buyerRequest.create({ data: { requestText: requestText || `${category} ${assetType} ${location}`.trim(), category: categories.includes(category as typeof categories[number]) ? category as typeof categories[number] : undefined, assetType: assetType || undefined, location: location || undefined, budget: clean(body.budget) || undefined, contactName: clean(body.contact_name) || undefined, contactEmail: clean(body.contact_email) || undefined, contactPhone: clean(body.contact_phone) || undefined, source: "buyer_match_form", consentVersion: "2026-09-18-v1", consentAcceptedAt: new Date() } });
+      await requirePrisma().adminNotification.create({ data: { kind: "buyer", subject: "New buyer matching request", body: requestText || `${category} ${assetType} ${location}`.trim(), entityId: saved.id } });
       requestId = saved.id;
     }
     return NextResponse.json({ request_id: requestId, matches: matches.map(({ listing, score }) => ({ ...publicCard(listing), match_score: score })), message: matches.length ? "We found opportunities that may fit. A PrimeQuest representative will share qualified details." : "We will review the request and contact you when a suitable opportunity is available." });

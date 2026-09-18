@@ -1,11 +1,21 @@
 import AdminRecordsPage from "@/app/(admin)/components/AdminRecordsPage";
+import { isPrismaConfigured, requirePrisma } from "@/lib/server/prisma";
 
-const records = [
-  { ref: "INQ-118", title: "Vessel details requested", detail: "Buyer inquiry · Offshore Support Vessel · WhatsApp", status: "new", date: "2026-09-15" },
-  { ref: "INQ-117", title: "Land opportunity follow-up", detail: "Investor inquiry · Asaba · Email", status: "assigned", date: "2026-09-14" },
-  { ref: "INQ-116", title: "Submit vessel mandate", detail: "Owner inquiry · Commercial vessel · Web form", status: "open", date: "2026-09-13" },
-];
+export const dynamic = "force-dynamic";
 
-export default function AdminInquiriesPage() {
-  return <AdminRecordsPage eyebrow="Relationship desk" title="Inquiries" description="Track buyer interest, seller questions and the next human action required for each conversation." records={records} />;
+export default async function AdminInquiriesPage() {
+  let liveRecords: Array<{ ref: string; title: string; detail: string; status: string; date: string }> = [];
+  if (isPrismaConfigured()) {
+    try {
+      const requests = await requirePrisma().buyerRequest.findMany({ orderBy: { createdAt: "desc" }, take: 100 });
+      liveRecords = requests.map((request) => ({
+        ref: request.id.slice(0, 8).toUpperCase(),
+        title: request.requestText.slice(0, 100),
+        detail: `Buyer inquiry · ${request.assetType ?? "Requirement pending"} · ${request.location ?? "Location pending"} · ${request.contactName ?? "Contact pending"}`,
+        status: request.status,
+        date: request.createdAt.toISOString().slice(0, 10),
+      }));
+    } catch { liveRecords = []; }
+  }
+  return <AdminRecordsPage eyebrow="Relationship desk" title="Inquiries" description="Track buyer interest, seller questions and the next human action required for each conversation." records={liveRecords} />;
 }
