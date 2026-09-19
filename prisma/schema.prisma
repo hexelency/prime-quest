@@ -110,6 +110,10 @@ model Mandate {
   source             String             @default("public_form") @db.Text
   consentVersion     String             @map("consent_version") @db.Text
   consentAcceptedAt  DateTime           @map("consent_accepted_at") @db.Timestamptz(6)
+  contactConsent     Boolean            @default(false) @map("contact_consent")
+  meetingConsent     Boolean            @default(false) @map("meeting_consent")
+  preferredCallWindows Json             @default("[]") @map("preferred_call_windows")
+  timezone           String?            @db.Text
   status             MandateStatus      @default(new)
   verificationStatus VerificationStatus @default(under_review) @map("verification_status")
   requirements       Json               @default("{}")
@@ -118,6 +122,7 @@ model Mandate {
   counterparty       Counterparty?      @relation(fields: [counterpartyId], references: [id], onDelete: SetNull)
   buyerMatches       Match[]            @relation("buyerMandate")
   sellerMatches      Match[]            @relation("sellerMandate")
+  buyerRequestMatches BuyerRequestMandateMatch[]
   @@index([status, verificationStatus])
   @@map("mandates")
 }
@@ -180,10 +185,46 @@ model BuyerRequest {
   source       String        @default("public_form") @db.Text
   consentVersion String      @map("consent_version") @db.Text
   consentAcceptedAt DateTime @map("consent_accepted_at") @db.Timestamptz(6)
+  contactConsent Boolean       @default(false) @map("contact_consent")
+  meetingConsent Boolean       @default(false) @map("meeting_consent")
+  preferredCallWindows Json    @default("[]") @map("preferred_call_windows")
+  timezone     String?         @db.Text
   status       String        @default("new") @db.Text
   createdAt    DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  mandateMatches BuyerRequestMandateMatch[]
   @@index([status, createdAt])
   @@map("buyer_requests")
+}
+
+model BuyerRequestMandateMatch {
+  id             String       @id @default(uuid()) @db.Uuid
+  buyerRequestId String       @map("buyer_request_id") @db.Uuid
+  sellerMandateId String      @map("seller_mandate_id") @db.Uuid
+  score          Int
+  reasons        Json         @default("[]")
+  status         String       @default("potential") @db.Text
+  reviewedAt     DateTime?    @map("reviewed_at") @db.Timestamptz(6)
+  createdAt      DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  buyerRequest   BuyerRequest @relation(fields: [buyerRequestId], references: [id], onDelete: Cascade)
+  sellerMandate  Mandate      @relation(fields: [sellerMandateId], references: [id], onDelete: Cascade)
+  meetings       DealMeeting[]
+  @@unique([buyerRequestId, sellerMandateId])
+  @@index([status, score])
+  @@map("buyer_request_mandate_matches")
+}
+
+model DealMeeting {
+  id             String                      @id @default(uuid()) @db.Uuid
+  matchId        String                      @map("match_id") @db.Uuid
+  scheduledAt    DateTime                    @map("scheduled_at") @db.Timestamptz(6)
+  timezone       String                      @default("Africa/Lagos") @db.Text
+  durationMinutes Int                        @default(30) @map("duration_minutes")
+  inviteToken    String                      @unique @map("invite_token") @db.Text
+  status         String                      @default("pending") @db.Text
+  createdAt      DateTime                    @default(now()) @map("created_at") @db.Timestamptz(6)
+  match          BuyerRequestMandateMatch    @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  @@index([scheduledAt, status])
+  @@map("deal_meetings")
 }
 
 model AdminNotification {

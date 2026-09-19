@@ -39,7 +39,9 @@ export default function PrimeQuestChat() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ messages: nextMessages }),
       });
-      const result = await response.json() as ApiResponse;
+
+      const text = await response.text();
+      const result = text ? JSON.parse(text) as ApiResponse : {} as ApiResponse;
       if (!response.ok) throw new Error(result.error ?? "The guide is unavailable right now.");
       setMessages([...nextMessages, { role: "assistant", content: result.message ?? "Please contact the PrimeQuest team for assistance." }]);
     } catch (requestError) {

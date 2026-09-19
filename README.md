@@ -32,6 +32,30 @@ npm run prisma:migrate
 
 Keep `.env` out of source control. It is already ignored by this project.
 
+## OpenAI chatbot setup
+
+1. Create an account or sign in at [platform.openai.com](https://platform.openai.com/).
+2. Add billing or credits under **Settings > Billing**. API access is separate from a ChatGPT subscription.
+3. Open [API keys](https://platform.openai.com/api-keys), select **Create new secret key**, and copy it immediately. OpenAI will not show the complete key again.
+4. Put the key in your local `.env` file:
+
+```env
+OPENAI_API_KEY=your-openai-key
+OPENAI_MODEL=gpt-4o-mini
+```
+
+Restart `npm run dev` after changing `.env`. The server uses OpenAI when the key is configured and automatically uses the local PrimeQuest knowledge fallback when it is absent or invalid. Never commit `.env` or expose the key in browser code.
+
+## Vessel web discovery
+
+The AI can research approved HTTPS sources when `DISCOVERY_SOURCE_URLS` is configured as a comma-separated list. Add those domains to `SCRAPER_ALLOWED_DOMAINS`, then restart the server. Discovery returns unverified research candidates only; a human must review and map them to a lead or listing before publication. The chatbot does not execute arbitrary URLs or destructive admin actions.
+
+## WhatsApp intake acknowledgement
+
+The public buyer and seller intake route can send an optional acknowledgement through WhatsApp Cloud API. Configure `WHATSAPP_PHONE_NUMBER_ID`, `WHATSAPP_ACCESS_TOKEN`, `WHATSAPP_VERIFY_TOKEN` and `WHATSAPP_APP_SECRET` in the server-only `.env` file. The acknowledgement uses `WHATSAPP_DEFAULT_TIMEZONE` for its greeting and does not fail the intake if Meta rejects the message.
+
+Set `WHATSAPP_AUTO_REPLY=true` only after configuring Meta's webhook URL as `/api/webhooks/whatsapp`. Incoming messages and delivery statuses are logged as admin notifications. Keep automatic replies disabled until the response policy, consent process and approved WhatsApp templates have been reviewed.
+
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.

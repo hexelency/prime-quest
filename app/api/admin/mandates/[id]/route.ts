@@ -10,10 +10,12 @@ export async function PATCH(request: Request, context: RouteContext) {
     const { id } = await context.params;
     const body = await request.json() as { status?: string; verification_status?: string };
     if (!statuses.includes(body.status as typeof statuses[number]) && !body.verification_status) return NextResponse.json({ error: "A valid mandate update is required." }, { status: 400 });
-    const mandate = await requirePrisma().mandate.update({ where: { id }, data: {
+    const prisma = requirePrisma();
+    const mandate = await prisma.mandate.update({ where: { id }, data: {
       ...(statuses.includes(body.status as typeof statuses[number]) ? { status: body.status as typeof statuses[number] } : {}),
       ...(body.verification_status ? { verificationStatus: body.verification_status as "potential" | "confirmed" | "under_review" | "verified" | "rejected" } : {}),
     } });
+    if (body.status && body.status !== "new") await prisma.adminNotification.updateMany({ where: { entityId: id, kind: "seller", readAt: null }, data: { readAt: new Date() } });
     return NextResponse.json({ mandate });
   } catch (error) {
     return NextResponse.json({ error: error instanceof Error ? error.message : "Could not update mandate." }, { status: 500 });

@@ -10,7 +10,9 @@ export async function PATCH(request: Request, context: RouteContext) {
     const { id } = await context.params;
     const body = await request.json() as { status?: string };
     if (!statuses.includes(body.status as typeof statuses[number])) return NextResponse.json({ error: "Invalid inquiry status." }, { status: 400 });
-    const inquiry = await requirePrisma().buyerRequest.update({ where: { id }, data: { status: body.status } });
+    const prisma = requirePrisma();
+    const inquiry = await prisma.buyerRequest.update({ where: { id }, data: { status: body.status } });
+    if (body.status !== "new") await prisma.adminNotification.updateMany({ where: { entityId: id, kind: "buyer", readAt: null }, data: { readAt: new Date() } });
     return NextResponse.json({ inquiry });
   } catch (error) { return NextResponse.json({ error: error instanceof Error ? error.message : "Could not update inquiry." }, { status: 500 }); }
 }
