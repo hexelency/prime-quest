@@ -28,8 +28,10 @@ type ListingInput = {
   risk_flags?: unknown;
 };
 
-function text(value: unknown) {
-  return typeof value === "string" && value.trim() ? value.trim() : undefined;
+function text(value: unknown, maxLength?: number) {
+  if (typeof value !== "string" || !value.trim()) return undefined;
+  const normalized = value.trim();
+  return maxLength ? normalized.slice(0, maxLength) : normalized;
 }
 
 function validateListing(input: ListingInput, partial = false) {
