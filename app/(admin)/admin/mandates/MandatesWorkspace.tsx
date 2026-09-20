@@ -12,6 +12,7 @@ export default function MandatesWorkspace({ initialRecords }: { initialRecords: 
   const [records, setRecords] = useState(initialRecords);
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState("all");
+  const [matchFilter, setMatchFilter] = useState<"all" | "matched" | "unmatched">("all");
   const [selected, setSelected] = useState<MandateRecord | null>(null);
   const [busyId, setBusyId] = useState("");
   const [matching, setMatching] = useState(false);
@@ -24,8 +25,9 @@ export default function MandatesWorkspace({ initialRecords }: { initialRecords: 
 
   const visible = useMemo(() => records.filter((record) => {
     const needle = query.trim().toLowerCase();
-    return (!needle || `${record.id} ${record.product} ${record.assetType} ${record.location} ${record.contactName} ${record.contactEmail}`.toLowerCase().includes(needle)) && (status === "all" || record.status === status);
-  }), [query, records, status]);
+    const matchesFilter = matchFilter === "all" || (matchFilter === "matched" ? record.matchCount > 0 : record.matchCount === 0);
+    return (!needle || `${record.id} ${record.product} ${record.assetType} ${record.location} ${record.contactName} ${record.contactEmail}`.toLowerCase().includes(needle)) && (status === "all" || record.status === status) && matchesFilter;
+  }), [matchFilter, query, records, status]);
 
   function openMandate(record: MandateRecord) {
     setSelected(record);
@@ -108,7 +110,7 @@ export default function MandatesWorkspace({ initialRecords }: { initialRecords: 
         <div className="flex flex-col gap-2 justify-between"><button className={styles.primary} type="button" disabled={matching} onClick={() => runMatching("all")}>{matching ? "Scanning..." : "Match all buyers"}</button><a className={styles.primary} href="/mandate">+ New mandate</a></div>
       </header>
       <section className={styles.panel}>
-        <div className={styles.toolbar}><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search seller, mandate or ID" aria-label="Search seller mandates" /><select value={status} onChange={(event) => setStatus(event.target.value)} aria-label="Filter mandates by status"><option value="all">All statuses</option>{statuses.map((item) => <option value={item} key={item}>{item.replace("_", " ")}</option>)}</select><span>{visible.length} records</span></div>
+        <div className={styles.toolbar}><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search seller, mandate or ID" aria-label="Search seller mandates" /><select value={status} onChange={(event) => setStatus(event.target.value)} aria-label="Filter mandates by status"><option value="all">All statuses</option>{statuses.map((item) => <option value={item} key={item}>{item.replace("_", " ")}</option>)}</select><select value={matchFilter} onChange={(event) => setMatchFilter(event.target.value as typeof matchFilter)} aria-label="Filter mandates by match status"><option value="all">All match states</option><option value="matched">Matched</option><option value="unmatched">Unmatched</option></select><span>{visible.length} records</span></div>
         {error && <p className={styles.error} role="alert">{error}</p>}
         {message && showMessage && <div className={styles.matchToast} role="status"><span className={styles.matchToastIcon}>✓</span><div><strong>Matching complete</strong><p>{message}</p></div><button type="button" onClick={() => setShowMessage(false)} aria-label="Dismiss matching result">×</button></div>}
         <div className={styles.list}>{visible.map((record) => <article key={record.id}><button className={styles.refButton} type="button" onClick={() => openMandate(record)}>{record.id.slice(0, 8).toUpperCase()}</button><div><h2>{record.product}</h2><p>{record.assetType} · {record.location || "Location pending"} · {record.contactName || "Contact pending"}</p></div><a className={styles.matchLink} href={record.matchCount ? `/admin/matches?sellerMandateId=${record.id}` : `/admin/matching?sellerMandateId=${record.id}`}>{record.matchCount ? `Open matched · ${record.matchCount}` : "Find matches"}</a><select className={styles.rowSelect} value={record.status} disabled={busyId === record.id} onChange={(event) => updateStatus(record, event.target.value)} aria-label={`Update status for ${record.product}`}>{statuses.map((item) => <option value={item} key={item}>{item.replace("_", " ")}</option>)}</select><time>{new Date(record.createdAt).toLocaleDateString()}</time><button type="button" onClick={() => openMandate(record)}>Open ↗</button></article>)}</div>
