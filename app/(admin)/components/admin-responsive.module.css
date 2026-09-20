@@ -1,0 +1,30 @@
+.root { display: contents; }
+:global(.content) { min-width: 0; overflow-x: hidden; }
+:global(.page) { min-width: 0; }
+:global(.panel), :global(.tablePanel), :global(.chatShell) { max-width: 100%; min-width: 0; }
+:global(.toolbar) { min-width: 0; }
+:global(.toolbar input), :global(.toolbar select) { max-width: 100%; min-width: 0; }
+:global(.list article) { min-width: 0; }
+:global(.list article > *) { min-width: 0; overflow-wrap: anywhere; }
+:global(.list article h2), :global(.list article p), :global(.list article small) { overflow-wrap: anywhere; }
+:global(.tablePanel) { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+:global(.tablePanel table) { min-width: 720px; }
+@media (max-width: 700px) {
+  :global(.page) { padding: 28px 14px 44px; }
+  :global(.header) { align-items: flex-start; display: grid; gap: 16px; }
+  :global(.header h1) { font-size: 48px; }
+  :global(.description) { font-size: 13px; }
+  :global(.panel), :global(.tablePanel) { padding: 14px; }
+  :global(.list article) { align-items: start; display: grid; gap: 8px 10px; grid-template-columns: 48px minmax(0, 1fr); padding: 14px 0; }
+  :global(.list article > time), :global(.list article > select), :global(.list article > button:not(.refButton)), :global(.list article > span) { grid-column: 2; justify-self: start; }
+  :global(.list article > button:not(.refButton)) { padding: 0; }
+  :global(.list article > span) { font-size: 9px !important; }
+  :global(.detailGrid), :global(.peopleGrid) { grid-template-columns: 1fr; }
+  :global(.modal) { max-width: calc(100vw - 28px); padding: 18px; }
+  :global(.modalHeader h2) { font-size: 25px; overflow-wrap: anywhere; }
+  :global(.modalActions) { align-items: stretch; flex-direction: column; }
+  :global(.modalActions > *) { width: 100%; }
+  :global(.row) { grid-template-columns: 1fr; gap: 8px; }
+  :global(.row button) { text-align: left; }
+  :global(.customGrid) { grid-template-columns: 1fr; }
+}

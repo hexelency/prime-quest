@@ -38,12 +38,14 @@ export async function POST(request: Request) {
 
   try {
     const prisma = requirePrisma();
-    const body = await request.json().catch(() => ({})) as { scope?: "selected" | "all"; sellerMandateId?: string };
-    if (body.scope === "selected" && !body.sellerMandateId) return NextResponse.json({ error: "sellerMandateId is required for a selected scan." }, { status: 400 });
+    const body = await request.json().catch(() => ({})) as { scope?: "selected" | "all"; sellerMandateId?: string; buyerRequestId?: string };
+    if (body.scope === "selected" && !body.sellerMandateId && !body.buyerRequestId) return NextResponse.json({ error: "sellerMandateId or buyerRequestId is required for a selected scan." }, { status: 400 });
     const [requests, mandates] = await Promise.all([
-      prisma.buyerRequest.findMany({ where: { status: { not: "rejected" } }, orderBy: { createdAt: "desc" }, take: 200 }),
-      prisma.mandate.findMany({ where: { direction: "sell", status: { notIn: ["closed", "expired"] }, ...(body.scope === "selected" ? { id: body.sellerMandateId } : {}) }, orderBy: { createdAt: "desc" }, take: 200 }),
+      prisma.buyerRequest.findMany({ where: { status: { not: "rejected" }, ...(body.scope === "selected" && body.buyerRequestId ? { id: body.buyerRequestId } : {}) }, orderBy: { createdAt: "desc" }, take: 200 }),
+      prisma.mandate.findMany({ where: { direction: "sell", status: { notIn: ["closed", "expired"] }, ...(body.scope === "selected" && body.sellerMandateId ? { id: body.sellerMandateId } : {}) }, orderBy: { createdAt: "desc" }, take: 200 }),
     ]);
+    const existingMatches = await prisma.buyerRequestMandateMatch.findMany({ where: { buyerRequestId: { in: requests.map((item) => item.id) }, sellerMandateId: { in: mandates.map((item) => item.id) } }, select: { buyerRequestId: true, sellerMandateId: true } });
+    const existingPairs = new Set(existingMatches.map((match) => `${match.buyerRequestId}:${match.sellerMandateId}`));
 
     const candidates: MatchCandidate[] = [];
     for (const request of requests) {
@@ -55,12 +57,18 @@ export async function POST(request: Request) {
     }
 
     let created = 0;
+    let skipped = 0;
     for (const candidate of candidates) {
-      const match = await prisma.buyerRequestMandateMatch.upsert({
-        where: { buyerRequestId_sellerMandateId: { buyerRequestId: candidate.buyerRequestId, sellerMandateId: candidate.sellerMandateId } },
-        update: { score: candidate.score, reasons: candidate.reasons },
-        create: { buyerRequestId: candidate.buyerRequestId, sellerMandateId: candidate.sellerMandateId, score: candidate.score, reasons: candidate.reasons },
-      });
+      const pairKey = `${candidate.buyerRequestId}:${candidate.sellerMandateId}`;
+      if (existingPairs.has(pairKey)) { skipped += 1; continue; }
+      let match;
+      try {
+        match = await prisma.buyerRequestMandateMatch.create({ data: { buyerRequestId: candidate.buyerRequestId, sellerMandateId: candidate.sellerMandateId, score: candidate.score, reasons: candidate.reasons } });
+      } catch (error) {
+        if ((error as { code?: string }).code === "P2002") { skipped += 1; continue; }
+        throw error;
+      }
+      existingPairs.add(pairKey);
       const notification = await prisma.adminNotification.findFirst({ where: { kind: "buyer_seller_match", entityId: match.id } });
       if (!notification) {
         const request = requests.find((item) => item.id === candidate.buyerRequestId);
@@ -79,7 +87,7 @@ export async function POST(request: Request) {
 
     const unmatchedMandates = mandates.filter((mandate) => !candidates.some((candidate) => candidate.sellerMandateId === mandate.id));
     const outreachCandidates = unmatchedMandates.length ? requests.filter((request) => request.contactEmail || request.contactPhone).map((request) => ({ id: request.id, name: request.contactName, email: request.contactEmail, phone: request.contactPhone, requirement: request.requestText })) : [];
-    return NextResponse.json({ scope: body.scope ?? "all", scannedRequests: requests.length, scannedMandates: mandates.length, matches: candidates.length, notificationsCreated: created, unmatchedMandates: unmatchedMandates.map((mandate) => ({ id: mandate.id, product: mandate.product, assetType: mandate.assetType })), outreachCandidates, nextActions: unmatchedMandates.length ? ["prepare_previous_buyer_outreach", "run_web_discovery"] : [] });
+    return NextResponse.json({ scope: body.scope ?? "all", scannedRequests: requests.length, scannedMandates: mandates.length, matches: created, skipped, notificationsCreated: created, unmatchedMandates: unmatchedMandates.map((mandate) => ({ id: mandate.id, product: mandate.product, assetType: mandate.assetType })), outreachCandidates, nextActions: unmatchedMandates.length ? ["prepare_previous_buyer_outreach", "run_web_discovery"] : [] });
   } catch (error) {
     return NextResponse.json({ error: error instanceof Error ? error.message : "Could not scan buyer and seller records." }, { status: 500 });
   }

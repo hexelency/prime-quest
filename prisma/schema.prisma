@@ -98,6 +98,8 @@ model Mandate {
   counterpartyId     String?            @map("counterparty_id") @db.Uuid
   direction          MandateDirection
   assetType          String             @map("asset_type") @db.Text
+  imoNumber          String?            @map("imo_number") @db.Text
+  verificationDetails String?           @map("verification_details") @db.Text
   product            String             @db.Text
   quantity           Decimal?
   quantityUnit       String?            @map("quantity_unit") @db.Text
@@ -151,6 +153,8 @@ model AssetListing {
   title              String             @db.Text
   category           AssetCategory
   assetType          String             @map("asset_type") @db.Text
+  imoNumber          String?            @map("imo_number") @db.Text
+  verificationDetails String?           @map("verification_details") @db.Text
   location           String?            @db.Text
   summary            String?            @db.Text
   sourceUrl          String?            @map("source_url") @db.Text
@@ -182,6 +186,9 @@ model BuyerRequest {
   contactName  String?       @map("contact_name") @db.Text
   contactEmail String?       @map("contact_email") @db.Text
   contactPhone String?       @map("contact_phone") @db.Text
+  imoNumber    String?       @map("imo_number") @db.Text
+  verificationDetails String? @map("verification_details") @db.Text
+  requirements Json          @default("{}")
   source       String        @default("public_form") @db.Text
   consentVersion String      @map("consent_version") @db.Text
   consentAcceptedAt DateTime @map("consent_accepted_at") @db.Timestamptz(6)

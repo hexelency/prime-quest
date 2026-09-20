@@ -11,6 +11,8 @@ type ListingInput = {
   title?: unknown;
   category?: unknown;
   asset_type?: unknown;
+  imo_number?: unknown;
+  verification_details?: unknown;
   location?: unknown;
   summary?: unknown;
   source_url?: unknown;
@@ -36,6 +38,8 @@ function validateListing(input: ListingInput, partial = false) {
     ...(text(input.title) ? { title: text(input.title) } : {}),
     ...(categories.includes(input.category as typeof categories[number]) ? { category: input.category } : {}),
     ...(text(input.asset_type) ? { asset_type: text(input.asset_type) } : {}),
+    ...(text(input.imo_number) ? { imo_number: text(input.imo_number) } : {}),
+    ...(text(input.verification_details) ? { verification_details: text(input.verification_details, 2000) } : {}),
     ...(text(input.location) ? { location: text(input.location) } : {}),
     ...(text(input.summary) ? { summary: text(input.summary) } : {}),
     ...(text(input.source_url) ? { source_url: text(input.source_url) } : {}),
@@ -67,6 +71,8 @@ export function serializeListing(listing: Record<string, unknown>) {
     title: listing.title,
     category: listing.category,
     asset_type: listing.assetType,
+    imo_number: listing.imoNumber,
+    verification_details: listing.verificationDetails,
     location: listing.location,
     summary: listing.summary,
     source_url: listing.sourceUrl,
@@ -92,6 +98,8 @@ export function prismaListingData(listing: Record<string, unknown>) {
     ...(listing.title ? { title: listing.title as string } : {}),
     ...(listing.category ? { category: listing.category as typeof categories[number] } : {}),
     ...(listing.asset_type ? { assetType: listing.asset_type as string } : {}),
+    ...(listing.imo_number ? { imoNumber: listing.imo_number as string } : {}),
+    ...(listing.verification_details ? { verificationDetails: listing.verification_details as string } : {}),
     ...(listing.location ? { location: listing.location as string } : {}),
     ...(listing.summary ? { summary: listing.summary as string } : {}),
     ...(listing.source_url ? { sourceUrl: listing.source_url as string } : {}),

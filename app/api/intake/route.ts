@@ -47,6 +47,10 @@ export async function POST(request: Request) {
     const description = text(body.description, 2000);
     const terms = text(body.terms, 500);
     const category = text(body.category, 40).toLowerCase();
+    const assetType = text(body.asset_type, 180);
+    const imoNumber = text(body.imo_number, 40);
+    const verificationDetails = text(body.verification_details, 2000);
+    const trackableAsset = /vessel|ship|tanker|barge|container|ahts|psv|osv|tug/i.test(`${category} ${assetType}`);
     const consent = body.consent === true || body.consent === "on" || body.consent === "true";
     const contactConsent = body.contact_consent === true || body.contact_consent === "on" || body.contact_consent === "true";
     const meetingConsent = body.meeting_consent === true || body.meeting_consent === "on" || body.meeting_consent === "true";
@@ -56,6 +60,8 @@ export async function POST(request: Request) {
     if (!isPrismaConfigured()) return NextResponse.json({ error: "The intake service is not configured." }, { status: 503 });
     if (!["buyer", "seller"].includes(kind)) return NextResponse.json({ error: "Choose whether this is a buyer request or seller mandate." }, { status: 400 });
     if (!name || !email || !phone || !description || !consent || !contactConsent || !meetingConsent || !preferredCallWindows.length) return NextResponse.json({ error: "Name, email, phone, request details, contact consent, meeting consent and at least one preferred time window are required." }, { status: 400 });
+    if (trackableAsset && !imoNumber) return NextResponse.json({ error: "An IMO number is required for vessel, ship, tanker, barge or container requests so the asset can be tracked and verified." }, { status: 400 });
+    if (/property|land|real estate|building/i.test(`${category} ${assetType}`) && !verificationDetails) return NextResponse.json({ error: "Property and land requests must include title or verification details, such as COFO information." }, { status: 400 });
 
     const prisma = requirePrisma();
     const consentAcceptedAt = new Date();
@@ -72,13 +78,13 @@ export async function POST(request: Request) {
     if (kind === "buyer") {
       const record = await prisma.buyerRequest.create({ data: {
         requestText: description, category: ["vessel", "property", "land", "track_farm", "energy"].includes(category as never) ? category as never : undefined,
-        assetType: text(body.asset_type, 180) || undefined, location: location || undefined, budget: terms || undefined,
+        assetType: assetType || undefined, location: location || undefined, budget: terms || undefined, imoNumber: imoNumber || undefined, verificationDetails: verificationDetails || undefined, requirements: { verificationDetails: verificationDetails || null },
         contactName: name, contactEmail: email, contactPhone: phone, source, consentVersion: CONSENT_VERSION, consentAcceptedAt, contactConsent, meetingConsent, preferredCallWindows, timezone,
       } });
       entityId = record.id;
     } else {
       const record = await prisma.mandate.create({ data: {
-        direction: "sell", assetType: text(body.asset_type, 180) || category || "unspecified", product: description,
+        direction: "sell", assetType: assetType || category || "unspecified", product: description, imoNumber: imoNumber || undefined, verificationDetails: verificationDetails || undefined,
         deliveryLocation: location || undefined, terms: terms || undefined, contactName: name, contactEmail: email, contactPhone: phone,
         source, consentVersion: CONSENT_VERSION, consentAcceptedAt, contactConsent, meetingConsent, preferredCallWindows, timezone,
       } });

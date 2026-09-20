@@ -24,6 +24,7 @@ export default function AdminDashboard() {
   const [marketAssets, setMarketAssets] = useState<MarketAsset[]>([]);
   const [marketBuyers, setMarketBuyers] = useState<MarketBuyer[]>([]);
   const [marketDatabase, setMarketDatabase] = useState("preview");
+  const [overview, setOverview] = useState({ inquiries: 0, mandates: 0, matches: 0, meetings: 0, pendingMeetings: 0 });
 
   useEffect(() => {
     fetch("/api/admin/market-intelligence")
@@ -35,6 +36,10 @@ export default function AdminDashboard() {
         setMarketDatabase(result.database ?? "preview");
       })
       .catch(() => setMarketDatabase("unavailable"));
+  }, []);
+
+  useEffect(() => {
+    fetch("/api/admin/overview").then((response) => response.json()).then((result: { counts?: Partial<typeof overview> }) => setOverview((current) => ({ ...current, ...result.counts }))).catch(() => undefined);
   }, []);
 
   const filteredListings = useMemo(() => {
@@ -63,18 +68,12 @@ export default function AdminDashboard() {
         </header>
 
         <div className={styles.content}>
-          <div className={styles.notice} role="status">
-            <span className={styles.noticeMark}>i</span>
-            <span><strong>Demo inventory mode.</strong> Records shown here are static preview data and are not connected to publishing or storage.</span>
-            <button type="button" aria-label="Dismiss demo notice">Dismiss</button>
-          </div>
-
           <section className={styles.statsGrid} aria-label="Workspace summary">
-            <article className={styles.statCard}><span>Assets for review</span><strong>{marketAssets.length}</strong><small>AI sale signals</small></article>
-            <article className={styles.statCard}><span>Buyer signals</span><strong>{marketBuyers.length}</strong><small>Companies and investors</small></article>
-            <article className={styles.statCard}><span>Awaiting review</span><strong>08</strong><small className={styles.warningText}>Needs attention</small></article>
-            <article className={styles.statCard}><span>Open inquiries</span><strong>12</strong><small>Since last Monday</small></article>
-            <article className={styles.statCard}><span>Published this month</span><strong>06</strong><small className={styles.positiveText}>+18% from August</small></article>
+            <article className={styles.statCard}><span>Buyer inquiries</span><strong>{overview.inquiries}</strong><small>Captured requests</small></article>
+            <article className={styles.statCard}><span>Seller mandates</span><strong>{overview.mandates}</strong><small>Submitted mandates</small></article>
+            <article className={styles.statCard}><span>Matched opportunities</span><strong>{overview.matches}</strong><small className={styles.warningText}>Database matches</small></article>
+            <article className={styles.statCard}><span>Pending meetings</span><strong>{overview.pendingMeetings}</strong><small>Awaiting link delivery</small></article>
+            <article className={styles.statCard}><span>Total meetings</span><strong>{overview.meetings}</strong><small className={styles.positiveText}>Created records</small></article>
           </section>
 
           <section className={styles.intelligenceGrid} aria-label="AI market intelligence">

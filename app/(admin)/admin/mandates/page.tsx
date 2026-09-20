@@ -23,6 +23,8 @@ export default async function AdminMandatesPage() {
         assetType: mandate.assetType,
         location: mandate.deliveryLocation ?? "",
         terms: mandate.terms ?? "",
+        imoNumber: mandate.imoNumber ?? "",
+        verificationDetails: mandate.verificationDetails ?? "",
         contactName: mandate.contactName ?? "",
         contactEmail: mandate.contactEmail ?? "",
         contactPhone: mandate.contactPhone ?? "",

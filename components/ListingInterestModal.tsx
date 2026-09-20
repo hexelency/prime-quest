@@ -15,6 +15,8 @@ export default function ListingInterestModal({ listing, onClose }: ListingIntere
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const submitting = useRef(false);
+  const trackable = /vessel|container/i.test(`${listing.category} ${listing.type}`);
+  const property = /property|land|building/i.test(`${listing.category} ${listing.type}`);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -25,12 +27,14 @@ export default function ListingInterestModal({ listing, onClose }: ListingIntere
     const email = String(form.get("email") ?? "").trim();
     const phone = String(form.get("phone") ?? "").trim();
     const brief = String(form.get("brief") ?? "").trim();
+    const imoNumber = String(form.get("imo_number") ?? "").trim();
+    const verificationDetails = String(form.get("verification_details") ?? "").trim();
     const accepted = form.get("terms") === "on";
     const contactConsent = form.get("contact_consent") === "on";
     const meetingConsent = form.get("meeting_consent") === "on";
     const selectedWindows = form.getAll("call_windows");
 
-    if (!name || !email || !phone || !accepted || !contactConsent || !meetingConsent || !selectedWindows.length) {
+    if (!name || !email || !phone || !accepted || !contactConsent || !meetingConsent || !selectedWindows.length || (trackable && !imoNumber) || (property && !verificationDetails)) {
       setError("Please complete your details, accept the terms, consent to contact and meeting, and choose at least one call window.");
       return;
     }
@@ -48,6 +52,8 @@ export default function ListingInterestModal({ listing, onClose }: ListingIntere
         phone,
         category,
         asset_type: listing.type,
+        imo_number: imoNumber,
+        verification_details: verificationDetails,
         location: listing.location,
         terms: `Request for listing ${listing.ref}`,
         description: `Buyer enquiry for ${listing.title} (${listing.ref}). ${brief || "No additional requirements provided."}`,
@@ -81,6 +87,8 @@ export default function ListingInterestModal({ listing, onClose }: ListingIntere
           <label>Email<input name="email" type="email" required placeholder="you@company.com" /></label>
           <label>Phone / WhatsApp<input name="phone" required placeholder="+234 ..." /></label>
           <label>Additional requirements<textarea name="brief" rows={3} placeholder="Quantity, timing, location or specifications" /></label>
+          {trackable && <label>IMO number<input name="imo_number" required placeholder="IMO number for tracking" /></label>}
+          {property && <label>Title / COFO verification details<textarea name="verification_details" required rows={3} placeholder="COFO, title, survey or verification reference" /></label>}
           <label>Preferred timezone<select name="timezone" defaultValue="Africa/Lagos"><option value="Africa/Lagos">West Africa Time (Lagos)</option><option value="Europe/London">United Kingdom</option><option value="America/New_York">Eastern Time (US)</option><option value="Asia/Dubai">Gulf Standard Time</option></select></label>
           <fieldset className="listing-modal-windows"><legend>Preferred meeting or call windows</legend>{callWindows.map((window) => <label className="listing-modal-consent" key={window}><input name="call_windows" type="checkbox" value={window} /> <span>{window}</span></label>)}</fieldset>
           <label className="listing-modal-consent"><input name="terms" type="checkbox" required /> <span>I accept the <a href="/terms" target="_blank" rel="noreferrer">Terms of listing</a>.</span></label>

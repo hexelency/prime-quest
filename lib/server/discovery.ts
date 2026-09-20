@@ -13,7 +13,15 @@ export function validateDiscoveryUrl(value: unknown) {
 }
 
 export function extractDiscoveryCandidate(url: URL, html: string) {
-  const title = (html.match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1] ?? "Opportunity discovered").replace(/\s+/g, " ").trim().slice(0, 180);
+  const meta = (key: string) => {
+    const pattern = new RegExp(`<meta[^>]+(?:property|name)=["']${key}["'][^>]+content=["']([^"']*)["'][^>]*>`, "i");
+    const reversePattern = new RegExp(`<meta[^>]+content=["']([^"']*)["'][^>]+(?:property|name)=["']${key}["'][^>]*>`, "i");
+    return pattern.exec(html)?.[1] ?? reversePattern.exec(html)?.[1] ?? "";
+  };
+  const decode = (value: string) => value.replace(/&amp;/g, "&").replace(/&#x20a6;/gi, "NGN ").replace(/&#39;/g, "'").replace(/&quot;/g, '"').replace(/\s+/g, " ").trim();
+  const title = decode(meta("og:title") || meta("twitter:title") || html.match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1] || "Opportunity discovered").slice(0, 180);
+  const summary = decode(meta("og:description") || meta("twitter:description"));
+  const imageUrl = meta("og:image") || meta("twitter:image");
   const text = html.replace(/<script[\s\S]*?<\/script>/gi, " ").replace(/<style[\s\S]*?<\/style>/gi, " ").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
-  return { title, source_url: url.toString(), source_platform: url.hostname, source_summary: text.slice(0, 800), discovered_by: "ai_agent", fetched_at: new Date().toISOString() };
+  return { title, source_url: url.toString(), source_platform: url.hostname, source_summary: (summary || text).slice(0, 1200), image_url: imageUrl || undefined, discovered_by: "ai_agent", fetched_at: new Date().toISOString() };
 }
