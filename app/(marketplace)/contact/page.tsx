@@ -22,12 +22,12 @@ export default function ContactPage() {
           <div>
             <span>03</span>
             <h2>WhatsApp</h2>
-            <p><a href="https://wa.me/2348038128933" target="_blank" rel="noreferrer">+234 803 812 8933</a></p>
+            <p><a href="https://wa.me/2348038128933" target="_blank" rel="noreferrer"><span className="contact-icon whatsapp-icon" aria-hidden="true">WA</span> +234 803 812 8933</a></p>
           </div>
           <div>
             <span>04</span>
             <h2>Telephone</h2>
-            <p><a href="tel:+2348036598189">+234 803 659 8189</a></p>
+            <p><a href="tel:+2348036598189"><span className="contact-icon phone-icon" aria-hidden="true">☎</span> +234 803 659 8189</a></p>
           </div>
         </div>
 

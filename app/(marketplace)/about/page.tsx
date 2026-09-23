@@ -66,12 +66,25 @@ export default function AboutPage() {
           PrimeQuest builds trust through clear company identity, documentation, structured onboarding, verification stages, secure communication, appointment tracking and transaction records. We aim to make the process understandable, professional and accountable for all parties involved.
         </p>
 
+        <section className="ceo-section" aria-labelledby="ceo-heading">
+          <div className="ceo-portraits">
+            <img src="/ceo-pics/WhatsApp%20Image%202026-09-23%20at%2001.28.26.jpeg" alt="Mr. Ugochukwu Lawrence Festus, CEO of PrimeQuest" />
+            <img src="/ceo-pics/WhatsApp%20Image%202026-09-23%20at%2001.28.25.jpeg" alt="PrimeQuest CEO in a corporate setting" />
+          </div>
+          <div className="ceo-copy">
+            <p className="eyebrow accent">Corporate leadership</p>
+            <h2 id="ceo-heading">Meet the<br /><em>PrimeQuest CEO.</em></h2>
+            <p>Mr. Ugochukwu Lawrence Festus leads PrimeQuest Oil and Properties Consultants from Asaba, Delta State. His focus is building a more accountable route between legitimate owners, investors, buyers and professional representatives.</p>
+            <p className="ceo-contact"><a href="mailto:primequestoilandpropertyconsul@gmail.com">primequestoilandpropertyconsul@gmail.com</a><br /><a href="https://wa.me/2348038128933" target="_blank" rel="noreferrer"><span className="contact-icon whatsapp-icon" aria-hidden="true">WA</span> +234 803 812 8933</a><br /><a href="tel:+2348036598189"><span className="contact-icon phone-icon" aria-hidden="true">☎</span> +234 803 659 8189</a></p>
+          </div>
+        </section>
+
         <h2>Corporate contact</h2>
         <p>
           CEO: Mr. Ugochukwu Lawrence Festus<br />
           Email: primequestoilandpropertyconsul@gmail.com<br />
-          WhatsApp: +234 803 812 8933<br />
-          Telephone: +234 803 659 8189<br />
+          <a href="https://wa.me/2348038128933" target="_blank" rel="noreferrer"><span className="contact-icon whatsapp-icon" aria-hidden="true">WA</span> WhatsApp: +234 803 812 8933</a><br />
+          <a href="tel:+2348036598189"><span className="contact-icon phone-icon" aria-hidden="true">☎</span> Telephone: +234 803 659 8189</a><br />
           Address: Summit By Express, Capital of Delta State, Asaba, Delta State, Nigeria.
         </p>
       </section>
