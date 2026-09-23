@@ -51,7 +51,9 @@ export default function PrimeQuestHeader({ whatsappHref }: PrimeQuestHeaderProps
             <div className="nav-dropdown-menu"><a href="/#inquiry">For buyers <span>↗</span></a><a href="/mandate">For sellers <span>↗</span></a></div>
           </details>
           <a href="/about">About us</a>
-          <a href="/#contact">Contact</a>
+          <a href="/mission">Mission</a>
+          <a href="/faq">FAQs</a>
+          <a href="/contact">Contact</a>
         </div>
         <a className="button button-small button-outline desktop-whatsapp" href={whatsappHref} target="_blank" rel="noreferrer">WhatsApp us <span>↗</span></a>
         <button className="menu-toggle" type="button" aria-label={mobileNavOpen ? "Close navigation" : "Open navigation"} aria-controls="mobile-navigation-drawer" aria-expanded={mobileNavOpen} onClick={() => setMobileNavOpen((open) => !open)}><span /><span /><span /></button>
@@ -67,7 +69,9 @@ export default function PrimeQuestHeader({ whatsappHref }: PrimeQuestHeaderProps
               <a href="/#available-listings" onClick={closeNavigation}>Available <span>↗</span></a>
               <details className="mobile-nav-dropdown"><summary>How it works <span>⌄</span></summary><div><a href="/#inquiry" onClick={closeNavigation}>For buyers <span>↗</span></a><a href="/mandate" onClick={closeNavigation}>For sellers <span>↗</span></a></div></details>
               <a href="/about" onClick={closeNavigation}>About us <span>↗</span></a>
-              <a href="/#contact" onClick={closeNavigation}>Contact <span>↗</span></a>
+              <a href="/mission" onClick={closeNavigation}>Mission <span>↗</span></a>
+              <a href="/faq" onClick={closeNavigation}>FAQs <span>↗</span></a>
+              <a href="/contact" onClick={closeNavigation}>Contact <span>↗</span></a>
               <a className="mobile-whatsapp" href={whatsappHref} target="_blank" rel="noreferrer" onClick={closeNavigation}>WhatsApp us <span>↗</span></a>
             </div>
           </aside>

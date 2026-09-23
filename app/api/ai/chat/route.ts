@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { buildPrimeQuestReply } from "@/lib/primequest-chatbot";
 import { isPrismaConfigured, requirePrisma } from "@/lib/server/prisma";
 import { extractDiscoveryCandidate, validateDiscoveryUrl } from "@/lib/server/discovery";
+import { answerBuyerSellerQuestion, searchSellerMandates, searchVerifiedListings } from "@/lib/server/primequest-tools";
 
 export const runtime = "nodejs";
 
@@ -45,6 +46,7 @@ Additional PrimeQuest FAQ rules:
 - PrimeQuest contact: Summit By Express, Asaba, Delta State, Nigeria; primequestoilandpropertyconsul@gmail.com; WhatsApp +234 803 812 8933; telephone +234 803 659 8189.`;
 
 type AiDataTool = "buyer-count" | "buyer-review" | "mandate-search" | "listing-search" | "buyer-request-search" | "verification-risks" | "admin-notifications" | "web-discovery";
+type AiProvider = "auto" | "openai" | "ollama" | "local";
 
 function selectAiDataTool(prompt: string, conversation = ""): AiDataTool | null {
   const text = prompt.toLowerCase();
@@ -67,20 +69,21 @@ function selectAiDataToolFromText(text: string): AiDataTool | null {
   return null;
 }
 
-async function askOpenAI(messages: Array<{ role: "user" | "assistant" | "system"; content: string }>) {
-  const apiKey = process.env.OPENAI_API_KEY?.trim();
-  if (!apiKey || apiKey === "your-api-key" || apiKey === "your-openai-api-key") {
-    return null;
-  }
+async function askChatModel(provider: "openai" | "ollama", messages: Array<{ role: "user" | "assistant" | "system"; content: string }>) {
+  const isOllama = provider === "ollama";
+  const apiKey = isOllama ? process.env.OLLAMA_API_KEY?.trim() : process.env.OPENAI_API_KEY?.trim();
+  if (!isOllama && (!apiKey || apiKey === "your-api-key" || apiKey === "your-openai-api-key")) return null;
 
-  const response = await fetch("https://api.openai.com/v1/chat/completions", {
+  const baseUrl = (isOllama ? process.env.OLLAMA_BASE_URL || "http://127.0.0.1:11434/v1" : "https://api.openai.com/v1").trim().replace(/\/$/, "");
+  const model = isOllama ? process.env.OLLAMA_MODEL || "llama3.2" : process.env.OPENAI_MODEL || "gpt-4o-mini";
+  const response = await fetch(`${baseUrl}/chat/completions`, {
     method: "POST",
     headers: {
-      Authorization: `Bearer ${apiKey}`,
+      ...(apiKey ? { Authorization: `Bearer ${apiKey}` } : {}),
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      model: process.env.OPENAI_MODEL || "gpt-4o-mini",
+      model,
       temperature: 0.3,
       messages,
     }),
@@ -88,10 +91,10 @@ async function askOpenAI(messages: Array<{ role: "user" | "assistant" | "system"
 
   if (!response.ok) {
     const errorText = await response.text();
-    if (response.status === 429 && errorText.includes("credit_balance_exhausted")) {
+    if (!isOllama && response.status === 429 && errorText.includes("credit_balance_exhausted")) {
       throw new Error("OpenAI has no API credits for the organization attached to this key. Add billing credits at https://platform.openai.com/settings/organization/billing/, then restart the server.");
     }
-    throw new Error(`OpenAI request failed: ${response.status} ${errorText}`);
+    throw new Error(`${isOllama ? "Ollama" : "OpenAI"} request failed: ${response.status} ${errorText}`);
   }
 
   const data = await response.json() as { choices?: Array<{ message?: { content?: string } }> };
@@ -139,58 +142,7 @@ async function buildAdminContext() {
 async function buildLiveMandateReply(prompt: string) {
   if (!isPrismaConfigured() || !/mandate|seller|sell/i.test(prompt)) return null;
 
-  try {
-    const prisma = requirePrisma();
-    const unavailableStatuses: Array<"closed" | "expired"> = ["closed", "expired"];
-    const availableWhere = { direction: "sell" as const, status: { notIn: unavailableStatuses } };
-      const [count, confirmedCount, mandates] = await Promise.all([
-        prisma.mandate.count({ where: availableWhere }),
-      prisma.mandate.count({ where: { ...availableWhere, verificationStatus: "confirmed" } }),
-      prisma.mandate.findMany({
-        where: availableWhere,
-        orderBy: { createdAt: "desc" },
-        take: 50,
-        select: { product: true, assetType: true, deliveryLocation: true, terms: true, status: true, verificationStatus: true },
-      }),
-    ]);
-
-    const wantsConfirmed = /confirmed|verified/i.test(prompt);
-    const wantsActive = /active/i.test(prompt);
-    const wantsMatch = /match|supply|en590|diesel|product|find/i.test(prompt);
-    if (!/how many|count|number|available|currently|active|confirmed|verified|match|find/i.test(prompt)) return null;
-
-    if (wantsConfirmed) {
-      return `There ${confirmedCount === 1 ? "is" : "are"} currently ${confirmedCount} confirmed seller mandate${confirmedCount === 1 ? "" : "s"} available in the PrimeQuest database.`;
-    }
-
-    if (!wantsActive && !wantsMatch && /how many|count|number|available|currently/i.test(prompt)) {
-      return `There ${count === 1 ? "is" : "are"} currently ${count} available seller mandate${count === 1 ? "" : "s"} in the PrimeQuest database.`;
-    }
-
-    let results = mandates;
-    if (wantsActive) results = results.filter((mandate) => mandate.status === "active");
-    if (wantsMatch) {
-      const searchTerms = /en590|diesel/i.test(prompt) ? ["en590", "diesel", "oil", "vessel", "petroleum"] : [];
-      if (searchTerms.length) {
-        results = results.filter((mandate) => searchTerms.some((term) => `${mandate.product} ${mandate.assetType} ${mandate.terms ?? ""}`.toLowerCase().includes(term)));
-      }
-    }
-
-    if (!results.length) {
-      return wantsMatch
-        ? "I found no active seller mandate with EN590 or a clearly related oil or vessel description. The team should review the current under-review records before treating any as a match."
-        : "There are currently no seller mandates matching those filters in the PrimeQuest database.";
-    }
-
-    const summary = results.slice(0, 10).map((mandate) => {
-      const location = mandate.deliveryLocation ? ` in ${mandate.deliveryLocation}` : "";
-      return `- ${mandate.product} (${mandate.assetType})${location}; status: ${mandate.status}; verification: ${mandate.verificationStatus}`;
-    }).join("\n");
-    const label = wantsMatch ? "potentially relevant active seller mandates" : "available seller mandates";
-    return `I found ${results.length} ${label} in the PrimeQuest database. These are database matches, not a final commercial or technical verification.\n\n${summary}`;
-  } catch {
-    return null;
-  }
+  return searchSellerMandates(prompt);
 }
 
 async function buildLiveLeadReply(prompt: string) {
@@ -247,15 +199,7 @@ async function buildLiveOperationsReply(prompt: string) {
     }
 
     if (/listing|asset|opportunit/i.test(prompt)) {
-      const listings = await prisma.assetListing.findMany({
-        where: { status: "published", verificationStatus: { in: ["confirmed", "verified"] } },
-        orderBy: { publishedAt: "desc" },
-        take: 10,
-        select: { reference: true, title: true, assetType: true, location: true, summary: true, verificationStatus: true },
-      });
-      if (!listings.length) return "There are no published and verified marketplace listings available right now.";
-      const summary = listings.map((listing) => `- ${listing.reference}: ${listing.title} (${listing.assetType})${listing.location ? ` in ${listing.location}` : ""}; verification: ${listing.verificationStatus}`).join("\n");
-      return `I found ${listings.length} published and verified marketplace listing${listings.length === 1 ? "" : "s"}:\n\n${summary}`;
+      return searchVerifiedListings(prompt);
     }
 
     if (/buyer request|buyer requirement|inquir|request/i.test(prompt)) {
@@ -324,11 +268,11 @@ async function persistThread(threadId: string | undefined, latestPrompt: string,
 }
 
 export async function POST(request: Request) {
-  let body: { messages?: Array<{ role?: string; content?: string }>; threadId?: string; provider?: "auto" | "openai" | "local"; pageContext?: string } = {};
+  let body: { messages?: Array<{ role?: string; content?: string }>; threadId?: string; provider?: AiProvider; pageContext?: string } = {};
 
   try {
     try {
-      body = await request.json() as { messages?: Array<{ role?: string; content?: string }>; threadId?: string };
+      body = await request.json() as { messages?: Array<{ role?: string; content?: string }>; threadId?: string; provider?: AiProvider; pageContext?: string };
     } catch {
       body = {};
     }
@@ -343,18 +287,29 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Tell me what you need help with." }, { status: 400 });
     }
 
-    const provider = body.provider ?? "auto";
+    const configuredProvider = process.env.AI_PROVIDER === "ollama" || process.env.AI_PROVIDER === "openai" ? process.env.AI_PROVIDER : "openai";
+    const provider = body.provider === "auto" || !body.provider ? configuredProvider : body.provider;
+    if (provider === "local") {
+      const liveBuyerSellerReply = await answerBuyerSellerQuestion(latest);
+      if (liveBuyerSellerReply) {
+        const threadId = await persistThread(body.threadId, latest, liveBuyerSellerReply);
+        return NextResponse.json({ message: liveBuyerSellerReply, model: "PrimeQuest live database", source: "mcp-shared-tools", tool: "BuyerSellerQnA", threadId });
+      }
+    }
+
     const userConversation = messages.filter((message) => message.role === "user").map((message) => message.content).join("\n");
     const selectedTool = selectAiDataTool(latest, userConversation);
-    const liveReply = selectedTool === "buyer-review"
-      ? await buildLiveLeadReply(userConversation)
-      : selectedTool === "mandate-search"
-        ? await buildLiveMandateReply(userConversation)
-        : selectedTool
-          ? selectedTool === "web-discovery"
-            ? await buildWebDiscoveryReply()
-            : await buildLiveOperationsReply(userConversation)
-          : null;
+    const liveReply = provider === "local"
+      ? selectedTool === "buyer-review"
+        ? await buildLiveLeadReply(userConversation)
+        : selectedTool === "mandate-search"
+          ? await buildLiveMandateReply(userConversation)
+          : selectedTool
+            ? selectedTool === "web-discovery"
+              ? await buildWebDiscoveryReply()
+              : await buildLiveOperationsReply(userConversation)
+            : null
+      : null;
     if (liveReply) {
       const threadId = await persistThread(body.threadId, latest, liveReply);
       return NextResponse.json({ message: liveReply, model: "PrimeQuest live database", source: "admin-context", tool: selectedTool, threadId });
@@ -366,24 +321,28 @@ export async function POST(request: Request) {
       ...messages,
     ];
 
-    const openAiResponse = provider === "local" ? null : await askOpenAI(promptMessages);
-    if (provider === "openai" && !openAiResponse) {
-      return NextResponse.json({ error: "OpenAI did not return a response. Check the API key, billing, model name, and server logs." }, { status: 502 });
+    const modelResponse = provider === "local" ? null : await askChatModel(provider, promptMessages);
+    if ((provider === "openai" || provider === "ollama") && !modelResponse) {
+      return NextResponse.json({ error: `${provider === "ollama" ? "Ollama did" : "OpenAI did"} not return a response. Check the provider configuration, model name, and server logs.` }, { status: 502 });
     }
-    const reply = openAiResponse ?? buildPrimeQuestReply(latest);
+    const reply = modelResponse ?? buildPrimeQuestReply(latest);
     const threadId = await persistThread(body.threadId, latest, reply);
 
     return NextResponse.json({
       message: reply,
       system_prompt: SYSTEM_PROMPT,
-      model: process.env.OPENAI_MODEL || "gpt-4o-mini",
-      source: openAiResponse ? "openai" : "local-knowledge",
+      model: modelResponse ? provider === "ollama" ? process.env.OLLAMA_MODEL || "llama3.2" : process.env.OPENAI_MODEL || "gpt-4o-mini" : "local-knowledge",
+      source: modelResponse ? provider : "local-knowledge",
       threadId,
     });
   } catch (error) {
-    if (body.provider === "openai") {
+    if (body.provider === "openai" || body.provider === "ollama") {
+      const message = error instanceof Error ? error.message : "The AI provider request failed.";
+      const providerUnavailable = body.provider === "ollama" && message === "fetch failed"
+        ? "Ollama is not running. Start Ollama and download the configured model, then try again."
+        : message;
       return NextResponse.json({
-        error: error instanceof Error ? error.message : "The OpenAI request failed.",
+        error: providerUnavailable,
       }, { status: 502 });
     }
 

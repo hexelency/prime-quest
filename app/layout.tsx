@@ -13,6 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"),
   title: "PrimeQuest | Oil, Vessels & Properties",
   description: "PrimeQuest connects genuine sellers, buyers and investors across vessels, oil and gas, and property.",
   icons: {

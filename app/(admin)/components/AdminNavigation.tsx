@@ -16,6 +16,7 @@ const links = [
   ["07", "Closed deals", "/admin/deals"],
   ["08", "Lead intelligence", "/admin/leads"],
   ["09", "AI control center", "/admin/ai"],
+  ["10", "Agent tasks", "/admin/ai/tasks"],
 ] as const;
 
 export default function AdminNavigation({ children }: Readonly<{ children: React.ReactNode }>) {

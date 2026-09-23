@@ -298,3 +298,21 @@ model AiMessage {
   @@index([threadId, createdAt])
   @@map("ai_messages")
 }
+
+model AgentTask {
+  id             String   @id @default(uuid()) @db.Uuid
+  title          String   @db.Text
+  objective      String   @db.Text
+  status         String   @default("awaiting_approval") @db.Text
+  approvalStatus String   @default("pending") @map("approval_status") @db.Text
+  keywords       Json     @default("[]")
+  sourceUrls     Json     @default("[]") @map("source_urls")
+  steps          Json     @default("[]")
+  findings       Json     @default("[]")
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@index([status, approvalStatus, createdAt])
+  @@map("agent_tasks")
+}
+

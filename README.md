@@ -46,6 +46,24 @@ OPENAI_MODEL=gpt-4o-mini
 
 Restart `npm run dev` after changing `.env`. The server uses OpenAI when the key is configured and automatically uses the local PrimeQuest knowledge fallback when it is absent or invalid. Never commit `.env` or expose the key in browser code.
 
+## Ollama chatbot setup
+
+Ollama can run the dynamic chatbot locally without OpenAI credits. On Windows, install Ollama from [ollama.com/download](https://ollama.com/download), then run:
+
+```powershell
+ollama pull llama3.2
+```
+
+Configure the server in `.env`:
+
+```env
+AI_PROVIDER=ollama
+OLLAMA_BASE_URL=http://127.0.0.1:11434/v1
+OLLAMA_MODEL=llama3.2
+```
+
+Restart the Next.js server after changing `.env`. The public chatbot and admin assistant will use Ollama for general conversation while the shared PrimeQuest tools continue to read verified listings and mandates from the database. `OLLAMA_API_KEY` is only required when using Ollama Cloud; local Ollama requests do not need one.
+
 ## Vessel web discovery
 
 The AI can research approved HTTPS sources when `DISCOVERY_SOURCE_URLS` is configured as a comma-separated list. Add those domains to `SCRAPER_ALLOWED_DOMAINS`, then restart the server. Discovery returns unverified research candidates only; a human must review and map them to a lead or listing before publication. The chatbot does not execute arbitrary URLs or destructive admin actions.

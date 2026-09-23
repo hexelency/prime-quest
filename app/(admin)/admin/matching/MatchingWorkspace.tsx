@@ -20,7 +20,14 @@ export default function MatchingWorkspace({ buyerRequestId, sellerMandateId }: P
       const result = await response.json() as { error?: string; matches?: number; notificationsCreated?: number };
       if (!response.ok) throw new Error(result.error ?? "Could not run database matching.");
       setMessage(`${result.matches ?? 0} database match${result.matches === 1 ? "" : "es"} found. ${result.notificationsCreated ?? 0} new review notification${result.notificationsCreated === 1 ? "" : "s"} created.`);
-    } catch (reason) { setError(reason instanceof Error ? reason.message : "Could not run database matching."); } finally { setBusy(""); }
+      return true;
+    } catch (reason) { setError(reason instanceof Error ? reason.message : "Could not run database matching."); return false; } finally { setBusy(""); }
+  }
+
+  async function openAiMatch() {
+    const matched = await runDatabaseMatch();
+    if (!matched) return;
+    window.dispatchEvent(new CustomEvent("primequest:open-ai", { detail: { prompt: `Review the matches for ${buyerRequestId ? `buyer request ${buyerRequestId}` : `seller mandate ${sellerMandateId}`}. Summarize the strongest counterparties, verification risks, and next actions requiring admin approval. Do not send messages, publish records, or create meetings automatically.` } }));
   }
 
   async function runWebSearch(event: FormEvent) {
