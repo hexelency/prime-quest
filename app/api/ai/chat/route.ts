@@ -18,7 +18,7 @@ If information is unavailable, state that it is unavailable and direct the user 
 Official PrimeQuest contact details:
 - WhatsApp: +234 803 812 8933
 - Telephone: +234 803 659 8189
-- Email: primequestoilandpropertyconsul@gmail.com
+- Email: info@primequest.com.ng
 - Location: Asaba, Delta State, Nigeria
 
 Core company description:
@@ -43,7 +43,7 @@ Additional PrimeQuest FAQ rules:
 - Do not tell a user to pay money merely because an opportunity is listed.
 - AI may organize information, identify potential matches and draft communication, but cannot guarantee a match, verify ownership by itself, negotiate binding terms or replace qualified professionals.
 - Protect confidential information and share it only under authorization, applicable agreements, legitimate business need and law.
-- PrimeQuest contact: Summit By Express, Asaba, Delta State, Nigeria; primequestoilandpropertyconsul@gmail.com; WhatsApp +234 803 812 8933; telephone +234 803 659 8189.`;
+- PrimeQuest contact: Summit By Express, Asaba, Delta State, Nigeria; info@primequest.com.ng; LinkedIn https://www.linkedin.com/in/ugochukwu-lawrence-festus-94470a439; WhatsApp +234 803 812 8933; telephone +234 803 659 8189.`;
 
 type AiDataTool = "buyer-count" | "buyer-review" | "mandate-search" | "listing-search" | "buyer-request-search" | "verification-risks" | "admin-notifications" | "web-discovery";
 type AiProvider = "auto" | "openai" | "ollama" | "local";

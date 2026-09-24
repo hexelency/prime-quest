@@ -75,14 +75,15 @@ export default function AboutPage() {
             <p className="eyebrow accent">Corporate leadership</p>
             <h2 id="ceo-heading">Meet the<br /><em>PrimeQuest CEO.</em></h2>
             <p>Mr. Ugochukwu Lawrence Festus leads PrimeQuest Oil and Properties Consultants from Asaba, Delta State. His focus is building a more accountable route between legitimate owners, investors, buyers and professional representatives.</p>
-            <p className="ceo-contact"><a href="mailto:primequestoilandpropertyconsul@gmail.com">primequestoilandpropertyconsul@gmail.com</a><br /><a href="https://wa.me/2348038128933" target="_blank" rel="noreferrer"><span className="contact-icon whatsapp-icon" aria-hidden="true">WA</span> +234 803 812 8933</a><br /><a href="tel:+2348036598189"><span className="contact-icon phone-icon" aria-hidden="true">☎</span> +234 803 659 8189</a></p>
+            <p className="ceo-contact"><a href="mailto:info@primequest.com.ng">info@primequest.com.ng</a><br /><a href="https://www.linkedin.com/in/ugochukwu-lawrence-festus-94470a439" target="_blank" rel="noreferrer">LinkedIn profile ↗</a><br /><a href="https://wa.me/2348038128933" target="_blank" rel="noreferrer"><span className="contact-icon whatsapp-icon" aria-hidden="true">WA</span> +234 803 812 8933</a><br /><a href="tel:+2348036598189"><span className="contact-icon phone-icon" aria-hidden="true">☎</span> +234 803 659 8189</a></p>
           </div>
         </section>
 
         <h2>Corporate contact</h2>
         <p>
           CEO: Mr. Ugochukwu Lawrence Festus<br />
-          Email: primequestoilandpropertyconsul@gmail.com<br />
+          Email: info@primequest.com.ng<br />
+          LinkedIn: <a href="https://www.linkedin.com/in/ugochukwu-lawrence-festus-94470a439" target="_blank" rel="noreferrer">Ugochukwu Lawrence Festus ↗</a><br />
           <a href="https://wa.me/2348038128933" target="_blank" rel="noreferrer"><span className="contact-icon whatsapp-icon" aria-hidden="true">WA</span> WhatsApp: +234 803 812 8933</a><br />
           <a href="tel:+2348036598189"><span className="contact-icon phone-icon" aria-hidden="true">☎</span> Telephone: +234 803 659 8189</a><br />
           Address: Summit By Express, Capital of Delta State, Asaba, Delta State, Nigeria.

@@ -10,6 +10,7 @@ import { FaqSection, TrustSections } from "@/app/(marketplace)/components/home/T
 import { BuyerSection, HomeFooter, MandateSection, SellerGuideSection } from "@/app/(marketplace)/components/home/ConversionSections";
 import ReferenceSection from "@/app/(marketplace)/components/home/ReferenceSection";
 import AvailableSection from "@/app/(marketplace)/components/home/AvailableSection";
+import VesselTracking from "@/app/(marketplace)/components/VesselTracking";
 import PrimeQuestChat from "@/app/(marketplace)/components/PrimeQuestChat";
 
 const WHATSAPP_NUMBER = "2348108117215";
@@ -55,6 +56,8 @@ export default function Home() {
             <SectionConnector />
 
             <AvailableSection />
+
+            <VesselTracking />
 
             <SectionConnector />
 

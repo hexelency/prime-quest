@@ -17,7 +17,7 @@ export default function ContactPage() {
           <div>
             <span>02</span>
             <h2>Email</h2>
-            <p><a href="mailto:primequestoilandpropertyconsul@gmail.com">primequestoilandpropertyconsul@gmail.com</a></p>
+            <p><a href="mailto:info@primequest.com.ng">info@primequest.com.ng</a></p>
           </div>
           <div>
             <span>03</span>
@@ -28,6 +28,11 @@ export default function ContactPage() {
             <span>04</span>
             <h2>Telephone</h2>
             <p><a href="tel:+2348036598189"><span className="contact-icon phone-icon" aria-hidden="true">☎</span> +234 803 659 8189</a></p>
+          </div>
+          <div>
+            <span>05</span>
+            <h2>LinkedIn</h2>
+            <p><a href="https://www.linkedin.com/in/ugochukwu-lawrence-festus-94470a439" target="_blank" rel="noreferrer">Ugochukwu Lawrence Festus ↗</a></p>
           </div>
         </div>
 
