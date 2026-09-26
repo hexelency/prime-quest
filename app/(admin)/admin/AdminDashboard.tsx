@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useMemo, useState } from "react";
 import { availableListings, type AvailableCategory } from "@/lib/available-listings";
 import { useEffect } from "react";
@@ -63,7 +64,7 @@ export default function AdminDashboard() {
           <div className={styles.accountArea}>
             <span className={styles.statusDot} />
             <span>Admin account</span>
-            <span className={styles.avatar}>PQ</span>
+            <Image className="admin-account-logo" src="/logo/official-logo.png" alt="" width={150} height={150} />
           </div>
         </header>
 

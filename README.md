@@ -18,13 +18,13 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 ## Database setup
 
-Prisma migrations require a PostgreSQL connection string. In the Supabase dashboard, open **Connect**, choose the Prisma connection details, and copy the connection string into a local `.env` file:
+Set `DATABASE_URL` to Supabase's shared transaction-mode pooler (port `6543`) for application requests. Set `DIRECT_URL` to the session/direct connection for Prisma migrations. In the Supabase dashboard, open **Connect** to find both connection strings, then copy them into a local `.env` file:
 
 ```powershell
 Copy-Item .env.example .env
 ```
 
-Replace the placeholder `DATABASE_URL` in `.env` with the real Supabase connection string, then run:
+Replace the placeholder `DATABASE_URL` and `DIRECT_URL` values in `.env`, then run:
 
 ```powershell
 npm run prisma:migrate

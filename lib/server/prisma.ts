@@ -2,20 +2,20 @@ import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "@/generated/prisma";
 
 const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient; prismaConnectionString?: string };
+const connectionString = process.env.DATABASE_URL ?? process.env.DIRECT_URL;
 
-function createPrismaClient() {
-  const connectionString = process.env.DIRECT_URL ?? process.env.DATABASE_URL;
-  if (!connectionString) return null;
-  const adapter = new PrismaPg({ connectionString });
+function createPrismaClient(connectionString: string) {
+  const adapter = new PrismaPg({ connectionString, max: 3 });
   return new PrismaClient({ adapter });
 }
 
-const connectionString = process.env.DIRECT_URL ?? process.env.DATABASE_URL;
-export const prisma = globalForPrisma.prismaConnectionString === connectionString
-  ? globalForPrisma.prisma ?? createPrismaClient()
-  : createPrismaClient();
+export const prisma = connectionString
+  ? globalForPrisma.prismaConnectionString === connectionString
+    ? globalForPrisma.prisma ?? createPrismaClient(connectionString)
+    : createPrismaClient(connectionString)
+  : null;
 
-if (process.env.NODE_ENV !== "production" && prisma) {
+if (connectionString && prisma) {
   globalForPrisma.prisma = prisma;
   globalForPrisma.prismaConnectionString = connectionString;
 }

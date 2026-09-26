@@ -1,6 +1,17 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { motion, useReducedMotion, type Variants } from "framer-motion";
+
+const businessCopyReveal: Variants = {
+  hidden: { opacity: 0, y: 24 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.7, ease: "easeOut" } },
+};
+
+const businessDetailsReveal: Variants = {
+  hidden: { opacity: 0, x: 32 },
+  visible: { opacity: 1, x: 0, transition: { duration: 0.7, delay: 0.12, ease: "easeOut" } },
+};
 
 const locations = [
   { label: "Asaba", timeZone: "Africa/Lagos" },
@@ -17,26 +28,28 @@ function formatTime(timeZone: string, now: Date) {
 }
 
 export default function BusinessInfo() {
-  const [now, setNow] = useState(() => new Date());
+  const reduceMotion = useReducedMotion();
+  const [now, setNow] = useState<Date | null>(null);
 
   useEffect(() => {
+    setNow(new Date());
     const timer = window.setInterval(() => setNow(new Date()), 30_000);
     return () => window.clearInterval(timer);
   }, []);
 
-  return <section className="business-info" aria-labelledby="business-info-heading">
+  return <motion.section className="business-info" aria-labelledby="business-info-heading" initial={reduceMotion ? "visible" : "hidden"} whileInView="visible" viewport={{ once: true, amount: 0.16 }}>
     <div className="shell business-info-grid">
-      <div className="business-info-copy">
+      <motion.div className="business-info-copy" variants={businessCopyReveal}>
         <p className="eyebrow accent">Plan a conversation</p>
         <h2 id="business-info-heading">PrimeQuest<br /><em>around the world.</em></h2>
         <p>Our team works from Asaba and coordinates with buyers, owners and representatives across international time zones.</p>
         <div className="business-info-actions"><a className="button button-dark" href={calendarHref} target="_blank" rel="noreferrer">Add a calendar hold <span>↗</span></a><a className="text-link" href={mapsHref} target="_blank" rel="noreferrer">Open in Google Maps <span>↗</span></a></div>
-      </div>
-      <div className="business-info-details">
-        <div className="world-clocks" aria-label="Current world times">{locations.map((location) => <div className="world-clock" key={location.timeZone}><span>{location.label}</span><strong>{formatTime(location.timeZone, now)}</strong><small>{location.timeZone}</small></div>)}</div>
+      </motion.div>
+      <motion.div className="business-info-details" variants={businessDetailsReveal}>
+        <div className="world-clocks" aria-label="Current world times">{locations.map((location) => <div className="world-clock" key={location.timeZone}><span>{location.label}</span><strong>{now ? formatTime(location.timeZone, now) : "--:--"}</strong><small>{location.timeZone}</small></div>)}</div>
         <div className="hours-card"><div><span className="state-label">Working hours</span><strong>Monday - Saturday</strong><p>09:00 - 18:00 WAT</p></div><div><span className="state-label">Closed</span><strong>Sunday</strong><p>Messages are reviewed on the next working day.</p></div></div>
         <div className="map-frame"><iframe title="PrimeQuest office location in Asaba" src="https://www.google.com/maps?q=Summit+By+Express%2C+Asaba%2C+Delta+State%2C+Nigeria&output=embed" loading="lazy" referrerPolicy="no-referrer-when-downgrade" /></div>
-      </div>
+      </motion.div>
     </div>
-  </section>;
+  </motion.section>;
 }

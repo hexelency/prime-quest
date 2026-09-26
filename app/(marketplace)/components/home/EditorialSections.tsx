@@ -1,9 +1,25 @@
+import { motion, useReducedMotion, type Variants } from "framer-motion";
+
+const processStagger: Variants = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.16 } },
+};
+
+const processReveal: Variants = {
+  hidden: { opacity: 0, x: -28 },
+  visible: { opacity: 1, x: 0, transition: { type: "spring", stiffness: 100, damping: 20 } },
+};
+
 export function IntroSection() {
-  return <section className="intro shell section-space"><div><p className="eyebrow accent">The PrimeQuest standard</p><h2>Built for decisions<br /><em>that matter.</em></h2></div><div className="intro-copy"><p>We work between opportunity and action. Our role is to make the next step clearer, the conversation more direct and the process more considered.</p><a className="text-link dark-link" href="#process">Our approach <span>→</span></a></div></section>;
+  const reduceMotion = useReducedMotion();
+
+  return <section className="intro shell section-space"><motion.div initial={reduceMotion ? false : { opacity: 0, x: -34 }} whileInView={{ opacity: 1, x: 0 }} transition={{ duration: 0.7, ease: "easeOut" }} viewport={{ once: true, amount: 0.2 }}><p className="eyebrow accent">The PrimeQuest standard</p><h2>Built for decisions<br /><em>that matter.</em></h2></motion.div><motion.div className="intro-copy" initial={reduceMotion ? false : { opacity: 0, x: 30 }} whileInView={{ opacity: 1, x: 0 }} transition={{ duration: 0.7, delay: reduceMotion ? 0 : 0.12, ease: "easeOut" }} viewport={{ once: true, amount: 0.2 }}><p>We work between opportunity and action. Our role is to make the next step clearer, the conversation more direct and the process more considered.</p><a className="text-link dark-link" href="#process">Our approach <span>→</span></a></motion.div></section>;
 }
 
 export function ProcessSection() {
-  return <section className="process shell section-space" id="process"><div className="section-heading"><div><p className="eyebrow accent">A more useful process</p><h2>From first brief<br /><em>to clear next step.</em></h2></div><p>Every conversation begins with context. We qualify the requirement, confirm the opportunity and keep communication moving through one trusted channel.</p></div><div className="process-list"><div><span>01</span><h3>Tell us what you need</h3><p>Buyer inquiry, seller mandate or a broader brief.</p></div><div><span>02</span><h3>We qualify the fit</h3><p>Our team reviews the details and available routes.</p></div><div><span>03</span><h3>Move with confidence</h3><p>Receive a clear response and a practical next step.</p></div></div></section>;
+  const reduceMotion = useReducedMotion();
+
+  return <section className="process shell section-space" id="process"><div className="section-heading"><div><p className="eyebrow accent">A more useful process</p><h2>From first brief<br /><em>to clear next step.</em></h2></div><p>Every conversation begins with context. We qualify the requirement, confirm the opportunity and keep communication moving through one trusted channel.</p></div><motion.div className="process-list" variants={processStagger} initial={reduceMotion ? "visible" : "hidden"} whileInView="visible" viewport={{ once: true, amount: 0.2 }}><motion.div variants={processReveal}><span>01</span><h3>Tell us what you need</h3><p>Buyer inquiry, seller mandate or a broader brief.</p></motion.div><motion.div variants={processReveal}><span>02</span><h3>We qualify the fit</h3><p>Our team reviews the details and available routes.</p></motion.div><motion.div variants={processReveal}><span>03</span><h3>Move with confidence</h3><p>Receive a clear response and a practical next step.</p></motion.div></motion.div></section>;
 }
 
 export function FaqSection() {

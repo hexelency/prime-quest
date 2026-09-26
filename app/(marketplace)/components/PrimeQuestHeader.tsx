@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 
@@ -37,7 +38,7 @@ export default function PrimeQuestHeader({ whatsappHref }: PrimeQuestHeaderProps
     <>
       <nav className="nav shell" aria-label="Main navigation">
         <a className="brand" href="/" aria-label="PrimeQuest home">
-          <span className="brand-mark">PQ</span>
+          <Image className="brand-logo" src="/logo/official-logo.png" alt="" width={150} height={150} priority />
           <span><strong>PRIMEQUEST</strong><small>OIL · VESSELS · PROPERTIES</small></span>
         </a>
         <div className="nav-links">

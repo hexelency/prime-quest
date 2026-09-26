@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { FormEvent, useState } from "react";
 import styles from "./prime-quest-chat.module.css";
 
@@ -55,7 +56,7 @@ export default function PrimeQuestChat() {
     <div className={styles.widget}>
       {isOpen && <section className={styles.panel} aria-label="PrimeQuest AI guide">
         <header className={styles.panelHeader}>
-          <div className={styles.identity}><span className={styles.mark}>PQ</span><div><strong>PrimeQuest guide</strong><span>AI-assisted orientation</span></div></div>
+          <div className={styles.identity}><Image className="chat-brand-logo" src="/logo/official-logo.png" alt="" width={150} height={150} /><div><strong>PrimeQuest guide</strong><span>AI-assisted orientation</span></div></div>
           <button className={styles.closeButton} type="button" onClick={() => setIsOpen(false)} aria-label="Close PrimeQuest guide">×</button>
         </header>
         <div className={styles.messages} aria-live="polite">
@@ -68,7 +69,7 @@ export default function PrimeQuestChat() {
         <form className={styles.composer} onSubmit={sendMessage}><input value={prompt} onChange={(event) => setPrompt(event.target.value)} placeholder="Ask PrimeQuest..." aria-label="Ask PrimeQuest" /><button type="submit" disabled={loading || !prompt.trim()} aria-label="Send message">↗</button></form>
         <p className={styles.disclaimer}>AI guidance is informational. Opportunities remain subject to human review and due diligence.</p>
       </section>}
-      <button className={`${styles.launcher} ${isOpen ? styles.launcherOpen : ""}`} type="button" onClick={() => setIsOpen((open) => !open)} aria-expanded={isOpen} aria-label={isOpen ? "Close PrimeQuest guide" : "Open PrimeQuest guide"}><span className={styles.launcherIcon}>{isOpen ? "×" : "✦"}</span><span>{isOpen ? "Close" : "Ask PrimeQuest"}</span></button>
+      <button className={isOpen ? `${styles.launcher} ${styles.launcherOpen}` : styles.launcher} type="button" onClick={() => setIsOpen((open) => !open)} aria-expanded={isOpen} aria-label={isOpen ? "Close PrimeQuest guide" : "Open PrimeQuest guide"}><span className={styles.launcherIcon}>{isOpen ? "×" : "✦"}</span><span>{isOpen ? "Close" : "Ask PrimeQuest"}</span></button>
     </div>
   );
 }

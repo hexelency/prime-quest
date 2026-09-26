@@ -18,9 +18,9 @@ export const metadata: Metadata = {
   description: "PrimeQuest connects genuine sellers, buyers and investors across vessels, oil and gas, and property.",
   alternates: { canonical: "/" },
   icons: {
-    icon: "/primequest-mark.svg",
-    shortcut: "/primequest-mark.svg",
-    apple: "/primequest-mark.svg",
+    icon: "/logo/official-logo.png",
+    shortcut: "/logo/official-logo.png",
+    apple: "/logo/official-logo.png",
   },
   openGraph: {
     title: "PrimeQuest | Oil, Vessels & Properties",
