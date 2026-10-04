@@ -42,7 +42,8 @@ export default function PublicCredentials() {
             PrimeQuest Oil and Properties Consultants · Asaba, Delta State,
             Nigeria
           </span>
-          <div className="public-credentials-links">
+        </div>
+        <div className="public-credentials-links">
 
           {/* Email */}
           <a
@@ -166,8 +167,6 @@ export default function PublicCredentials() {
             <span>Instagram</span>
             <span className="social-arrow">↗</span>
           </a>
-
-        </div>
         </div>
 
         

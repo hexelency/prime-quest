@@ -9,9 +9,21 @@ const categoryMap: Record<string, AvailableCategory> = {
   energy: "energy",
 };
 
-export async function getPublishedAvailableListings(): Promise<AvailableListing[]> {
+const databaseCategoryMap: Record<AvailableCategory, "vessel" | "property" | "land" | "track_farm" | "energy"> = {
+  vessels: "vessel",
+  property: "property",
+  land: "land",
+  "track-farms": "track_farm",
+  energy: "energy",
+};
+
+export async function getPublishedAvailableListings(category?: AvailableCategory): Promise<AvailableListing[]> {
   const listings = await requirePrisma().assetListing.findMany({
-    where: { status: "published", verificationStatus: { in: ["confirmed", "verified"] } },
+    where: {
+      status: "published",
+      verificationStatus: { in: ["confirmed", "verified"] },
+      ...(category ? { category: databaseCategoryMap[category] } : {}),
+    },
     orderBy: { publishedAt: "desc" },
   });
 
@@ -37,6 +49,6 @@ export async function getPublishedAvailableListings(): Promise<AvailableListing[
     summary: listing.summary ?? "Details supplied after qualification.",
     tags: Array.isArray(listing.tags) ? listing.tags.filter((tag: unknown): tag is string => typeof tag === "string") : [],
     publishedAt: listing.publishedAt?.toISOString() ?? listing.createdAt.toISOString(),
-    image: listing.imageUrl ?? "/listing-placeholder.svg",
+    image: listing.imageUrl ?? "/logo/official-logo.png",
   }));
 }

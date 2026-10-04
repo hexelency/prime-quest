@@ -1,8 +1,17 @@
 import Image from "next/image";
 import { motion, useReducedMotion, type Variants } from "framer-motion";
+import { useState } from "react";
 import type { Offering } from "@/lib/offerings";
 
 type ConversionSectionsProps = { offerings: readonly Offering[]; buyerLink: (message: string) => string; buyerMessage: (offering: Offering) => string };
+
+const footerClips = [
+  { src: "/footer%20videos/video%201.mp4", title: "Offshore Vessel Brokerage" },
+  { src: "/footer%20videos/Video%202.mp4", title: "Marine Support Operations" },
+  { src: "/footer%20videos/video%203.mp4", title: "PrimeQuest Energy Mandates" },
+  { src: "/footer%20videos/video%204.mp4", title: "Energy Infrastructure" },
+  { src: "/footer%20videos/Video%205.mp4", title: "Marine Support Operations" },
+];
 
 const mandateRise: Variants = {
   hidden: { opacity: 0, y: 34 },
@@ -48,6 +57,10 @@ export function BuyerSection({ offerings, buyerLink, buyerMessage }: ConversionS
 }
 
 export function HomeFooter({ buyerLink }: { buyerLink: (message: string) => string }) {
+  const [clipIndex, setClipIndex] = useState(0);
+  const activeClip = footerClips[clipIndex];
+  const advanceClip = () => setClipIndex((index) => (index + 1) % footerClips.length);
+
   return (
     <footer className="footer" id="contact">
       <div className="shell footer-grid">
@@ -55,7 +68,29 @@ export function HomeFooter({ buyerLink }: { buyerLink: (message: string) => stri
           <Image className="brand-logo" src="/logo/official-logo.png" alt="" width={150} height={150} />
           <span><strong>PRIMEQUEST</strong><small>OIL · VESSELS · PROPERTIES</small></span>
         </a>
-        <p>Connecting genuine sellers<br />with genuine buyers.</p>
+        <small className="footer-tagline">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M9.5 14.5 14.5 9.5M7.2 16.8l-1 1a4 4 0 0 1-5.7-5.7l4-4a4 4 0 0 1 5.7 0m6.6-.1 1-1a4 4 0 0 1 5.7 5.7l-4 4a4 4 0 0 1-5.7 0" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
+          </svg>
+          <span>Connecting genuine sellers with genuine buyers.</span>
+        </small>
+        <div className="footer-carousel" aria-label="Featured PrimeQuest videos">
+          <video
+            key={activeClip.src}
+            src={activeClip.src}
+            autoPlay
+            muted
+            playsInline
+            preload="auto"
+            aria-hidden="true"
+            onEnded={advanceClip}
+            onError={() => {
+              console.error(`Footer carousel clip failed to load: ${activeClip.src}`);
+              advanceClip();
+            }}
+          />
+          <span className="footer-carousel-title">{activeClip.title}</span>
+        </div>
         <div>
           <a href="/about">About PrimeQuest ↗</a>
           <a href="/mission">Our mission</a>
