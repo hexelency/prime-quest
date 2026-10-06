@@ -28,7 +28,7 @@ export const metadata: Metadata = {
   metadataBase: getMetadataBase(),
   title: "PrimeQuest | Oil, Vessels & Properties",
   description: "PrimeQuest connects genuine sellers, buyers and investors across vessels, oil and gas, and property.",
-  alternates: { canonical: "/" },
+  alternates: { canonical: "https://primequestconceptsltd.com/" },
   icons: {
     icon: "/logo/official-logo.png",
     shortcut: "/logo/official-logo.png",
@@ -39,13 +39,13 @@ export const metadata: Metadata = {
     description: "PrimeQuest connects genuine sellers, buyers and investors across vessels, oil and gas, property and agriculture.",
     type: "website",
     siteName: "PrimeQuest Oil and Properties Consultants",
-    images: [{ url: "/primequest-share.svg", width: 1200, height: 630, alt: "PrimeQuest Oil, Vessels and Properties" }],
+    images: [{ url: "https://primequestconceptsltd.com/primequest-share.jpg", width: 1200, height: 630, alt: "PrimeQuest Concepts Limited — Oil, vessels, marine, energy and property consultancy" }],
   },
   twitter: {
     card: "summary_large_image",
     title: "PrimeQuest | Oil, Vessels & Properties",
     description: "Genuine assets. Clear direction. PrimeQuest connects serious buyers and sellers.",
-    images: ["/primequest-share.svg"],
+    images: ["https://primequestconceptsltd.com/primequest-share.jpg"],
   },
 };
 

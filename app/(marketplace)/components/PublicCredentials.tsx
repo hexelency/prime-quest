@@ -47,7 +47,7 @@ export default function PublicCredentials() {
 
           {/* Email */}
           <a
-            href="mailto:info@primequest.com.ng"
+            href="mailto:info@primequestconceptsltd.com"
             aria-label="Email PrimeQuest"
             title="Email PrimeQuest"
           >

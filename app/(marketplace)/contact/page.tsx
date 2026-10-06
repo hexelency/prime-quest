@@ -17,7 +17,7 @@ export default function ContactPage() {
           <div>
             <span>02</span>
             <h2>Email</h2>
-            <p><a href="mailto:info@primequest.com.ng">info@primequest.com.ng</a></p>
+            <p><a href="mailto:info@primequestconceptsltd.com">info@primequestconceptsltd.com</a></p>
           </div>
           <div>
             <span>03</span>

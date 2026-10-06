@@ -116,7 +116,7 @@ export function HomeFooter({ buyerLink }: { buyerLink: (message: string) => stri
               <span>WhatsApp</span>
             </a>
           </div>
-          <a href="mailto:info@primequest.com.ng">info@primequest.com.ng</a>
+          <a href="mailto:info@primequestconceptsltd.com">info@primequestconceptsltd.com</a>
           <a href="tel:+2348036598189">+234 803 659 8189</a>
         </div>
       </div>
