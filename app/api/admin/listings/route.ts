@@ -1,12 +1,14 @@
 import { NextResponse } from "next/server";
 import { isPrismaConfigured, requirePrisma } from "@/lib/server/prisma";
 import type { Prisma } from "@/generated/prisma";
+import { getListingMedia } from "@/lib/server/listing-media";
 
 const categories = ["vessel", "property", "land", "track_farm", "energy"] as const;
 const statuses = ["discovered", "under_review", "approved", "published", "withdrawn"] as const;
 const verificationStatuses = ["potential", "confirmed", "under_review", "verified", "rejected"] as const;
 
 type ListingInput = {
+  id?: unknown;
   reference?: unknown;
   title?: unknown;
   category?: unknown;
@@ -36,6 +38,7 @@ function text(value: unknown, maxLength?: number) {
 
 function validateListing(input: ListingInput, partial = false) {
   const listing = {
+    ...(typeof input.id === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(input.id) ? { id: input.id } : {}),
     ...(text(input.reference) ? { reference: text(input.reference) } : {}),
     ...(text(input.title) ? { title: text(input.title) } : {}),
     ...(categories.includes(input.category as typeof categories[number]) ? { category: input.category } : {}),
@@ -61,6 +64,7 @@ function validateListing(input: ListingInput, partial = false) {
   if (missing.length) return { error: `Missing required fields: ${missing.join(", ")}` };
   if ("confidence_score" in listing && (listing.confidence_score as number) < 0 || "confidence_score" in listing && (listing.confidence_score as number) > 100) return { error: "confidence_score must be between 0 and 100." };
   if (input.category !== undefined && !("category" in listing)) return { error: "Invalid listing category." };
+  if (input.id !== undefined && !("id" in listing)) return { error: "Invalid listing ID." };
   if (input.status !== undefined && !("status" in listing)) return { error: "Invalid listing status." };
   if (input.verification_status !== undefined && !("verification_status" in listing)) return { error: "Invalid verification status." };
   return { listing };
@@ -81,6 +85,7 @@ export function serializeListing(listing: Record<string, unknown>) {
     source_platform: listing.sourcePlatform,
     source_summary: listing.sourceSummary,
     image_url: listing.imageUrl,
+    media: Array.isArray(listing.media) ? listing.media : [],
     tags: listing.tags,
     discovered_by: listing.discoveredBy,
     confidence_score: listing.confidenceScore,
@@ -97,6 +102,7 @@ export function serializeListing(listing: Record<string, unknown>) {
 export function prismaListingData(listing: Record<string, unknown>) {
   return {
     ...(listing.reference ? { reference: listing.reference as string } : {}),
+    ...(listing.id ? { id: listing.id as string } : {}),
     ...(listing.title ? { title: listing.title as string } : {}),
     ...(listing.category ? { category: listing.category as typeof categories[number] } : {}),
     ...(listing.asset_type ? { assetType: listing.asset_type as string } : {}),
@@ -131,7 +137,20 @@ export async function GET(request: Request) {
       },
       orderBy: { createdAt: "desc" },
     });
-    return NextResponse.json({ listings: listings.map((listing: Record<string, unknown>) => serializeListing(listing)), database: "connected" });
+    const mediaByListing = await getListingMedia(listings.map((listing) => listing.id));
+    return NextResponse.json({
+      listings: listings.map((listing: Record<string, unknown>) => ({
+        ...serializeListing(listing),
+        media: (() => {
+          const media = mediaByListing.get(listing.id as string) ?? [];
+          const imageUrl = typeof listing.imageUrl === "string" ? listing.imageUrl : "";
+          return imageUrl && !media.some((item) => item.url === imageUrl)
+            ? [{ type: "image" as const, url: imageUrl }, ...media]
+            : media;
+        })(),
+      })),
+      database: "connected",
+    });
   } catch (error) {
     return NextResponse.json({ error: error instanceof Error ? error.message : "Could not load listings." }, { status: 500 });
   }

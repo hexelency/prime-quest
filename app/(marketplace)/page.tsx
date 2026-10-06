@@ -38,8 +38,9 @@ type SectionEntranceProps = {
 
 function SectionEntrance({ children, delay = 0, direction = "up" }: SectionEntranceProps) {
     const reduceMotion = useReducedMotion();
+    const [loaded, setLoaded] = useState(false);
     const offset = direction === "left" ? { x: -28 } : direction === "right" ? { x: 28 } : { y: 24 };
-    return <motion.div initial={reduceMotion ? false : { opacity: 0, ...offset }} whileInView={{ opacity: 1, x: 0, y: 0 }} viewport={{ once: true, amount: 0.12 }} transition={{ duration: 0.65, delay: reduceMotion ? 0 : delay, ease: "easeOut" }}>{children}</motion.div>;
+    return <div className={`section-entrance${loaded ? " is-loaded" : ""}`}><motion.div initial={reduceMotion ? false : { opacity: 0, ...offset }} whileInView={{ opacity: 1, x: 0, y: 0 }} viewport={{ once: true, amount: 0.12 }} transition={{ duration: 0.65, delay: reduceMotion ? 0 : delay, ease: "easeOut" }} onAnimationComplete={() => setLoaded(true)}>{children}</motion.div></div>;
 }
 
 const loaderSlogans = ["Powering energy.", "Building values.", "Securing futures."];

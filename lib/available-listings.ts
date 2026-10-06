@@ -1,5 +1,12 @@
 export type AvailableCategory = "vessels" | "property" | "land" | "track-farms" | "energy";
 
+export type ListingMedia = {
+  id?: string;
+  type: "image" | "video";
+  url: string;
+  fileName?: string;
+};
+
 export type AvailableListing = {
   ref: string;
   title: string;
@@ -10,6 +17,7 @@ export type AvailableListing = {
   tags: readonly string[];
   publishedAt: string;
   image: string;
+  media?: readonly ListingMedia[];
 };
 
 const vesselImage = "https://images.unsplash.com/photo-1540946485063-a40da27545f8?auto=format&fit=crop&w=900&q=75";
