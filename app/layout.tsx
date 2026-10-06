@@ -12,8 +12,20 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+function getMetadataBase() {
+  const configuredUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim();
+  if (!configuredUrl) return new URL("http://localhost:3000");
+
+  const absoluteUrl = /^https?:\/\//i.test(configuredUrl) ? configuredUrl : `https://${configuredUrl}`;
+  const metadataBase = new URL(absoluteUrl);
+  if (!["http:", "https:"].includes(metadataBase.protocol)) {
+    throw new Error("NEXT_PUBLIC_SITE_URL must use HTTP or HTTPS.");
+  }
+  return metadataBase;
+}
+
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"),
+  metadataBase: getMetadataBase(),
   title: "PrimeQuest | Oil, Vessels & Properties",
   description: "PrimeQuest connects genuine sellers, buyers and investors across vessels, oil and gas, and property.",
   alternates: { canonical: "/" },
